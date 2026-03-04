@@ -1,0 +1,173 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Mountain, Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
+const Header = () => {
+  const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Nutrition Indicators", href: "/indicators" },
+    { name: "Others", href: "/others" },
+  ];
+
+  return (
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        isScrolled
+          ? "bg-background/80 backdrop-blur-md border-b border-border py-4"
+          : "bg-transparent py-6",
+      )}
+    >
+      <div className="w-full px-6 sm:px-10 lg:px-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2 group">
+          <div className="p-2 bg-secondary/30 rounded-xl group-hover:bg-secondary transition-colors">
+            <Mountain className="w-6 h-6 text-primary" />
+          </div>
+          <span className="text-xl font-bold tracking-tight text-secondary">
+            Nepal<span className="text-primary">Nutrition</span>
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          <NavigationMenu>
+            <NavigationMenuList>
+              {navLinks.map((link) => (
+                <NavigationMenuItem key={link.name}>
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent px-4 transition-all relative overflow-hidden",
+                        pathname === link.href
+                          ? "text-primary font-bold bg-primary/5"
+                          : "hover:bg-primary/5 hover:text-primary text-muted-foreground",
+                      )}
+                    >
+                      {link.name}
+                      {pathname === link.href && (
+                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                      )}
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+          <Button
+            asChild
+            size="lg"
+            className="rounded-full shadow-lg shadow-primary/20 px-8"
+          >
+            <Link href="/explore">Explore Map</Link>
+          </Button>
+        </nav>
+
+        {/* Mobile menu */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 hover:bg-primary/10 hover:text-primary transition-colors"
+              >
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-full sm:max-w-sm p-0 border-l-border/40"
+            >
+              <div className="flex flex-col h-full">
+                {/* Drawer Header */}
+                <div className="px-8 pt-10 pb-6 border-b border-border/50 bg-muted/20">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="p-1.5 bg-secondary/30 rounded-lg">
+                      <Mountain className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-lg font-bold tracking-tight text-secondary">
+                      Nepal<span className="text-primary">Nutrition</span>
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Data-Driven Insights
+                  </p>
+                </div>
+
+                {/* Drawer Links */}
+                <div className="grow overflow-y-auto px-4 py-8">
+                  <nav className="flex flex-col space-y-2">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        className={cn(
+                          "px-4 py-4 rounded-xl text-lg font-semibold transition-all flex items-center justify-between group",
+                          pathname === link.href
+                            ? "bg-primary/10 text-primary shadow-sm"
+                            : "text-foreground hover:bg-muted",
+                        )}
+                      >
+                        {link.name}
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                            pathname === link.href
+                              ? "bg-primary text-white"
+                              : "bg-muted group-hover:bg-primary/20 group-hover:text-primary",
+                          )}
+                        >
+                          <span className="text-xl">→</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+
+                {/* Drawer Footer */}
+                <div className="p-8 border-t border-border/50">
+                  <Button
+                    asChild
+                    size="xl"
+                    className="w-full rounded-2xl shadow-xl shadow-primary/20 font-bold"
+                  >
+                    <Link href="/explore">Explore Full Map</Link>
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
