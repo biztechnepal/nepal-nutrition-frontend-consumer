@@ -7,7 +7,6 @@ import { ProvinceTable } from "./components/ProvinceTable";
 import { IndicatorCard } from "./components/IndicatorCard";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Baby, Accessibility, User2, Milk, Info } from "lucide-react";
 import { useState } from "react";
 

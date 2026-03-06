@@ -29,16 +29,16 @@ export const ProvinceTable = ({
   };
 
   return (
-    <Card className="bg-white border border-border/40 shadow-lg flex flex-col overflow-hidden h-full rounded-2xl">
+    <Card className="bg-white border border-border/40 shadow-lg flex flex-col overflow-hidden h-full max-h-[480px] rounded-2xl">
       <CardHeader className="grid grid-cols-2 p-0 border-b-2 border-primary/20 shrink-0 space-y-0">
         <div className="flex items-center gap-1.5 p-2 px-3">
-          <ChevronDown size={12} className="text-secondary fill-secondary" />
-          <span className="text-[11px] font-black text-secondary uppercase tracking-tight">
+          <ChevronDown size={12} className="text-primary fill-primary" />
+          <span className="text-[11px] font-black text-primary uppercase tracking-tight">
             Province
           </span>
         </div>
         <div className="flex items-center justify-center p-2 border-l border-border/40">
-          <span className="text-[11px] font-black text-secondary uppercase tracking-tight">
+          <span className="text-[11px] font-black text-primary uppercase tracking-tight">
             Map Ref
           </span>
         </div>
@@ -52,7 +52,7 @@ export const ProvinceTable = ({
                 onClick={() => handleProvinceClick(province.name)}
                 className={`grid grid-cols-2 items-stretch h-9 w-full text-left transition-all group ${
                   selectedProvince === province.name
-                    ? "bg-secondary/10 ring-1 ring-inset ring-secondary/30"
+                    ? "bg-primary/10 ring-1 ring-inset ring-primary/30"
                     : index % 2 === 0
                       ? "bg-white"
                       : "bg-muted/40"
@@ -62,8 +62,8 @@ export const ProvinceTable = ({
                   <span
                     className={`text-[11px] font-black truncate transition-colors ${
                       selectedProvince === province.name
-                        ? "text-secondary"
-                        : "text-foreground/80 group-hover:text-secondary"
+                        ? "text-primary"
+                        : "text-foreground/80 group-hover:text-primary"
                     }`}
                   >
                     {province.name}
@@ -72,7 +72,7 @@ export const ProvinceTable = ({
                 <div
                   className="w-full h-full"
                   style={{
-                    backgroundColor: `var(--secondary)`,
+                    backgroundColor: `var(--primary)`,
                     opacity: province.opacity,
                   }}
                 />
