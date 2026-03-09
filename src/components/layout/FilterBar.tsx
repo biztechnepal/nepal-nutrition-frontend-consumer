@@ -51,11 +51,9 @@ export const FilterBar = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left Side: INIMS Full Form */}
         <div className="flex items-center gap-2 text-sm text-left">
-          <div className="flex items-center gap-3 text-secondary font-black bg-secondary/5 px-4 py-2 rounded-xl shrink-0 border border-secondary/10">
-            <Activity size={18} className="text-primary" />
+          <div className="text-primary font-black">
             <span className="tracking-tight text-[13px]">
-              Integrated Nutrition Information Management System{" "}
-              <span className="text-primary ml-1">(INIMS)</span>
+              Integrated Nutrition Information Management System
             </span>
           </div>
           {isPending && (

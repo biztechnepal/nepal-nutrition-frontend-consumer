@@ -14,6 +14,7 @@ import {
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import NepalMap from "@/components/d3/NepalMap";
 import { ProvinceTable } from "./components/ProvinceTable";
+import { NUTRITION_DATA } from "@/data/nutritionData";
 
 export const DashboardView = () => {
   const searchParams = useSearchParams();
@@ -21,6 +22,9 @@ export const DashboardView = () => {
   const pathname = usePathname();
 
   const selectedProvince = searchParams.get("province");
+  const data = selectedProvince
+    ? NUTRITION_DATA[selectedProvince]
+    : NUTRITION_DATA.National;
 
   const handleProvinceClick = (province: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -60,8 +64,10 @@ export const DashboardView = () => {
                     <span className="text-secondary font-bold text-[13px]">
                       MSNP III
                     </span>
-                    . This third iteration represents a sophisticated,
-                    data-driven approach.
+                    .{" "}
+                    {selectedProvince
+                      ? `Showing deep-dive analysis for ${selectedProvince}.`
+                      : "Overviewing national benchmarks and strategic targets."}
                   </p>
                   <p>
                     The goal is to attain optimal nutritional status for all
@@ -124,7 +130,7 @@ export const DashboardView = () => {
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 bg-primary rounded-full" />
             <h2 className="text-[14px] font-black uppercase tracking-[0.25em] text-secondary">
-              Impact Indicators Overview
+              Impact Indicators Overview - {selectedProvince || "National"}
             </h2>
           </div>
 
@@ -132,81 +138,135 @@ export const DashboardView = () => {
             <IndicatorCard
               title="Stunting"
               subtitle="Children < 5y • SDG 2.2.1"
-              value="24.8"
+              value={data.stunting.toString()}
               target="15"
-              status="error"
+              status={
+                data.stunting > 25
+                  ? "error"
+                  : data.stunting > 15
+                    ? "warning"
+                    : "success"
+              }
               icon={<Baby size={16} />}
             />
             <IndicatorCard
               title="Wasting"
               subtitle="Children < 5y • SDG 2.2.2"
-              value="7.6"
+              value={data.wasting.toString()}
               target="4"
-              status="warning"
+              status={
+                data.wasting > 7
+                  ? "error"
+                  : data.wasting > 4
+                    ? "warning"
+                    : "success"
+              }
               icon={<Accessibility size={16} />}
             />
             <IndicatorCard
               title="Low Birth Weight"
               subtitle="Newborn Health Indicator"
-              value="12.4"
+              value={data.lowBirthWeight.toString()}
               target="8"
-              status="warning"
+              status={
+                data.lowBirthWeight > 12
+                  ? "error"
+                  : data.lowBirthWeight > 8
+                    ? "warning"
+                    : "success"
+              }
               icon={<Baby size={16} />}
             />
             <IndicatorCard
               title="Underweight"
               subtitle="Children < 5y • SDG 2.2.2.1"
-              value="18.2"
+              value={data.underweight.toString()}
               target="10"
-              status="error"
+              status={
+                data.underweight > 18
+                  ? "error"
+                  : data.underweight > 10
+                    ? "warning"
+                    : "success"
+              }
               icon={<Scale size={16} />}
             />
             <IndicatorCard
               title="Child Overweight"
               subtitle="Children Under 5 years"
-              value="2.8"
+              value={data.childOverweight.toString()}
               target="5"
-              status="success"
+              status={data.childOverweight > 5 ? "error" : "success"}
               icon={<Scale size={16} />}
             />
             <IndicatorCard
               title="Adol. Overweight"
               subtitle="Adolescents (10-19y)"
-              value="14.2"
+              value={data.adolOverweight.toString()}
               target="12.5"
-              status="warning"
+              status={
+                data.adolOverweight > 15
+                  ? "error"
+                  : data.adolOverweight > 12.5
+                    ? "warning"
+                    : "success"
+              }
               icon={<User2 size={16} />}
             />
             <IndicatorCard
               title="Adult Overweight"
               subtitle="Age group 15-69y"
-              value="21.5"
+              value={data.adultOverweight.toString()}
               target="18"
-              status="error"
+              status={
+                data.adultOverweight > 20
+                  ? "error"
+                  : data.adultOverweight > 18
+                    ? "warning"
+                    : "success"
+              }
               icon={<User2 size={16} />}
             />
             <IndicatorCard
               title="Women Low BMI"
               subtitle="Reproductive Age • < 18.5"
-              value="17.4"
+              value={data.womenLowBMI.toString()}
               target="12"
-              status="warning"
+              status={
+                data.womenLowBMI > 18
+                  ? "error"
+                  : data.womenLowBMI > 12
+                    ? "warning"
+                    : "success"
+              }
               icon={<Activity size={16} />}
             />
             <IndicatorCard
               title="Child Anaemia"
               subtitle="Children < 5y • SDG 2.2.5"
-              value="43.2"
+              value={data.childAnaemia.toString()}
               target="20"
-              status="error"
+              status={
+                data.childAnaemia > 40
+                  ? "error"
+                  : data.childAnaemia > 20
+                    ? "warning"
+                    : "success"
+              }
               icon={<Droplets size={16} />}
             />
             <IndicatorCard
               title="Women Anaemia"
               subtitle="Reproductive Age • SDG 2.2.4"
-              value="34.2"
+              value={data.womenAnaemia.toString()}
               target="18"
-              status="error"
+              status={
+                data.womenAnaemia > 30
+                  ? "error"
+                  : data.womenAnaemia > 18
+                    ? "warning"
+                    : "success"
+              }
               icon={<Droplets size={16} />}
             />
           </div>

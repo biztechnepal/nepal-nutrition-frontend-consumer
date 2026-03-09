@@ -21,7 +21,61 @@ interface NutritionBarChartProps {
   height?: number;
 }
 
-const colors = ["#8b2f15", "#004b8e", "#2b4c7e", "#d4a017"]; // primary, secondary, chart-3, chart-4 approx oklch conversions
+const colors = [
+  "#8b2f15", // Primary
+  "#004b8e", // Secondary
+  "#2b4c7e", // Chart-3
+  "#d4a017", // Chart-4
+  "#6b21a8", // Purple
+  "#737373", // Neutral/Gray
+  "#047857", // Emerald/Green
+  "#be185d", // Pink
+  "#1d4ed8", // Blue
+  "#84cc16", // Lime
+];
+
+const formatKey = (key: string) => {
+  switch (key) {
+    case "wasting":
+      return "Wasting Prevalence";
+    case "stunting":
+      return "Stunting Prevalence";
+    case "childrenWasted":
+      return "Wasting Intensity";
+    case "childAnaemia":
+      return "Child Anaemia Prev.";
+    case "womenAnaemia":
+      return "Women Anaemia Prev.";
+    case "birthIron":
+      return "Birth (Iron-Folate)";
+    case "pregnancyBirth":
+      return "Pregnancy Care";
+    case "birthPastFive":
+      return "Birth Intervals";
+    case "birthWeightLess25":
+      return "Birth weight < 2.5 kg";
+    case "childOverweight":
+      return "Children overweight";
+    case "childOverweightAge":
+      return "Overweight for age";
+    case "womenMildlyThin":
+      return "Women mildly thin (17.0-18.4)";
+    case "womenModeratelyThin":
+      return "Women moderately thin (<17.0)";
+    case "womenObese":
+      return "Women obese (>=30.0)";
+    case "womenOverweight":
+      return "Women overweight (25.0-29.9)";
+    case "womenOverweightObese":
+      return "Women overweight/obese (>=25.0)";
+    case "womenThin":
+      return "Women thin (<18.5)";
+    case "womenNormalBMI":
+      return "Women normal BMI (18.5-24.9)";
+    default:
+      return key.replace(/([A-Z])/g, " $1").trim();
+  }
+};
 
 const Chart = ({
   data,
@@ -177,7 +231,7 @@ const Chart = ({
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[11px] font-black text-secondary leading-tight uppercase">
-                      {tooltipData.key.replace(/([A-Z])/g, " $1").trim()}
+                      {formatKey(tooltipData.key)}
                     </span>
                     <span className="text-xl font-black text-primary mt-1">
                       {tooltipData.value}%
@@ -204,9 +258,7 @@ const Chart = ({
                             align="left"
                             className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider"
                           >
-                            {(label as { text: string }).text
-                              .replace(/([A-Z])/g, " $1")
-                              .trim()}
+                            {formatKey((label as { text: string }).text)}
                           </LegendLabel>
                         </div>
                       </LegendItem>

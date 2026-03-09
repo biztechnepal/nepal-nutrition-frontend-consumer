@@ -31,7 +31,7 @@ const Header = () => {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Nutrition Indicators", href: "/nutrition-indicators" },
-    { name: "Others", href: "/others" },
+    { name: "Contact Us", href: "/contact" },
   ];
 
   return (
@@ -86,12 +86,6 @@ const Header = () => {
               ))}
             </NavigationMenuList>
           </NavigationMenu>
-          <Button
-            asChild
-            className="rounded-full shadow-lg shadow-primary/20 px-6"
-          >
-            <Link href="/explore">Explore Map</Link>
-          </Button>
         </nav>
 
         {/* Mobile menu */}
@@ -158,24 +152,7 @@ const Header = () => {
                         </div>
                       </Link>
                     ))}
-                    <Link
-                      href="/nutrition-indicators"
-                      className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] hover:text-primary transition-colors"
-                    >
-                      Nutrition Indicators
-                    </Link>
                   </nav>
-                </div>
-
-                {/* Drawer Footer */}
-                <div className="p-8 border-t border-border/50">
-                  <Button
-                    asChild
-                    size="xl"
-                    className="w-full rounded-2xl shadow-xl shadow-primary/20 font-bold"
-                  >
-                    <Link href="/explore">Explore Full Map</Link>
-                  </Button>
                 </div>
               </div>
             </SheetContent>
