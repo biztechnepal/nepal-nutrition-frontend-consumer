@@ -1,7 +1,7 @@
 import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ChevronDown } from "lucide-react";
+import { PROVINCE_COLORS } from "@/constants/provinces";
 
 interface ProvinceTableProps {
   selectedProvince?: string | null;
@@ -13,13 +13,13 @@ export const ProvinceTable = ({
   onProvinceClick,
 }: ProvinceTableProps) => {
   const provinces = [
-    { name: "Koshi", opacity: 0.4 },
-    { name: "Madhesh", opacity: 0.5 },
-    { name: "Bagmati", opacity: 0.6 },
-    { name: "Gandaki", opacity: 0.7 },
-    { name: "Lumbini", opacity: 0.8 },
-    { name: "Karnali", opacity: 0.9 },
-    { name: "Sudurpashchim", opacity: 1.0 },
+    { name: "Koshi" },
+    { name: "Madhesh" },
+    { name: "Bagmati" },
+    { name: "Gandaki" },
+    { name: "Lumbini" },
+    { name: "Karnali" },
+    { name: "Sudurpashchim" },
   ];
 
   const handleProvinceClick = (name: string) => {
@@ -29,28 +29,29 @@ export const ProvinceTable = ({
   };
 
   return (
-    <Card className="bg-white border border-border/40 shadow-lg flex flex-col overflow-hidden h-full max-h-[480px] rounded-2xl">
+    <Card className="overflow-hidden border-none shadow-sm bg-white/60 backdrop-blur-md group hover:-translate-y-px transition-all duration-300 rounded-xl relative">
       <CardHeader className="grid grid-cols-2 p-0 border-b-2 border-primary/20 shrink-0 space-y-0">
-        <div className="flex items-center gap-1.5 p-2 px-3">
-          <ChevronDown size={12} className="text-primary fill-primary" />
-          <span className="text-[11px] font-black text-primary uppercase tracking-tight">
+        <div className="flex items-center gap-2 p-3 px-4">
+          <ChevronDown size={14} className="text-primary fill-primary" />
+          <span className="text-[12px] font-black text-primary uppercase tracking-wide">
             Province
           </span>
         </div>
-        <div className="flex items-center justify-center p-2 border-l border-border/40">
-          <span className="text-[11px] font-black text-primary uppercase tracking-tight">
+        <div className="flex items-center justify-center p-3 border-l border-border/40">
+          <span className="text-[12px] font-black text-primary uppercase tracking-wide">
             Map Ref
           </span>
         </div>
       </CardHeader>
-      <CardContent className="p-0 grow overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="flex flex-col">
-            {provinces.map((province, index) => (
+      <CardContent className="p-0 overflow-hidden">
+        <div className="flex flex-col">
+          {provinces.map((province, index) => {
+            const color = PROVINCE_COLORS[province.name] || "var(--primary)";
+            return (
               <button
                 key={province.name}
                 onClick={() => handleProvinceClick(province.name)}
-                className={`grid grid-cols-2 items-stretch h-9 w-full text-left transition-all group ${
+                className={`grid grid-cols-2 items-stretch h-9 w-full text-left transition-all duration-300 group ${
                   selectedProvince === province.name
                     ? "bg-primary/10 ring-1 ring-inset ring-primary/30"
                     : index % 2 === 0
@@ -60,26 +61,30 @@ export const ProvinceTable = ({
               >
                 <div className="flex items-center px-3 border-r border-border/20">
                   <span
-                    className={`text-[11px] font-black truncate transition-colors ${
+                    className={`text-[11px] font-black truncate transition-all duration-300 ${
                       selectedProvince === province.name
-                        ? "text-primary"
+                        ? "text-primary scale-105"
                         : "text-foreground/80 group-hover:text-primary"
                     }`}
+                    style={{ transformOrigin: "left center" }}
                   >
                     {province.name}
                   </span>
                 </div>
                 <div
-                  className="w-full h-full"
+                  className="w-full h-full flex items-center justify-center transition-opacity duration-300"
                   style={{
-                    backgroundColor: `var(--primary)`,
-                    opacity: province.opacity,
+                    backgroundColor: color,
+                    opacity:
+                      selectedProvince && selectedProvince !== province.name
+                        ? 0.3
+                        : 0.85,
                   }}
                 />
               </button>
-            ))}
-          </div>
-        </ScrollArea>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

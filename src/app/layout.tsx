@@ -1,10 +1,12 @@
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
+import { FilterBar } from "@/components/layout/FilterBar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -26,9 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${inter.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
       >
         <Header />
+        <Suspense fallback={null}>
+          <FilterBar />
+        </Suspense>
         <main className="w-full">{children}</main>
       </body>
     </html>

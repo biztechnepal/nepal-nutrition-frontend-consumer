@@ -5,18 +5,18 @@ import { Badge } from "@/components/ui/badge";
 
 interface IndicatorCardProps {
   title: string;
+  subtitle?: string; // Summarized info like "U5 • SDG 2.2.1"
   value: string;
-  secondaryLabel?: string;
-  secondaryValue?: string;
+  target?: string;
   status: "success" | "warning" | "error";
   icon?: React.ReactNode;
 }
 
 export const IndicatorCard = ({
   title,
+  subtitle,
   value,
-  secondaryLabel,
-  secondaryValue,
+  target,
   status,
   icon,
 }: IndicatorCardProps) => {
@@ -26,54 +26,66 @@ export const IndicatorCard = ({
     error: "text-primary bg-primary/10 border-primary/20",
   };
 
-  return (
-    <Card className="overflow-hidden border-none shadow-lg shadow-foreground/5 bg-white/60 backdrop-blur-md group hover:translate-y-[-2px] transition-all duration-300 rounded-2xl">
-      <div
-        className={cn(
-          "h-1 w-full shrink-0",
-          status === "success"
-            ? "bg-emerald-500"
-            : status === "warning"
-              ? "bg-amber-500"
-              : "bg-primary",
-        )}
-      />
-      <CardContent className="p-4 flex flex-col gap-3">
-        <div className="flex justify-between items-center">
-          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest truncate mr-2">
-            {title}
-          </span>
-          {icon && (
-            <div
-              className={cn("p-1.5 rounded-lg border", statusColors[status])}
-            >
-              {icon}
-            </div>
-          )}
-        </div>
+  const statusBg = {
+    success: "bg-emerald-500",
+    warning: "bg-amber-500",
+    error: "bg-primary",
+  };
 
-        <div className="flex flex-col gap-0.5">
-          <div className="text-2xl font-black tracking-tighter text-secondary flex items-baseline gap-1">
-            {value}
-            <span className="text-[10px] font-bold opacity-40 uppercase">
-              percent
+  return (
+    <Card className="overflow-hidden border-none shadow-sm bg-white/60 backdrop-blur-md group hover:-translate-y-px transition-all duration-300 rounded-xl relative">
+      {/* Side status indicator instead of top bar to save space */}
+      <div
+        className={cn("absolute left-0 top-0 bottom-0 w-1", statusBg[status])}
+      />
+
+      <CardContent className="p-3 pl-4 flex flex-col gap-1.5 min-h-[115px] justify-between">
+        <div className="flex justify-between items-start gap-2">
+          <div className="flex flex-col min-w-0">
+            <span className="text-[11px] font-black text-secondary uppercase leading-tight truncate mb-0.5">
+              {title}
             </span>
+            {subtitle && (
+              <span className="text-[9px] font-bold text-muted-foreground uppercase opacity-70 leading-tight line-clamp-2">
+                {subtitle}
+              </span>
+            )}
           </div>
 
-          {secondaryLabel && secondaryValue && (
-            <div className="mt-1 pt-2 border-t border-border/40 flex items-center justify-between">
-              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">
-                {secondaryLabel}
-              </span>
-              <Badge
-                variant="outline"
-                className="text-[9px] font-black h-4 px-1 border-border/40"
-              >
-                {secondaryValue}%
-              </Badge>
+          {icon && (
+            <div
+              className={cn(
+                "p-1.5 rounded-md border shrink-0",
+                statusColors[status],
+              )}
+            >
+              <div className="scale-90 origin-center">{icon}</div>
             </div>
           )}
         </div>
+
+        <div className="flex items-baseline gap-1 mt-auto">
+          <span className="text-2xl font-black tracking-tighter text-secondary leading-none">
+            {value}
+          </span>
+          <span className="text-[10px] font-black opacity-30 uppercase tracking-widest">
+            %
+          </span>
+        </div>
+
+        {target && (
+          <div className="flex items-center justify-between border-t border-border/20 pt-2 mt-0.5">
+            <span className="text-[8px] font-black text-muted-foreground/60 uppercase tracking-tighter">
+              2030 Target
+            </span>
+            <Badge
+              variant="outline"
+              className="text-[9px] font-black h-4 px-1.5 border-border/30 bg-muted/5 text-secondary/70"
+            >
+              {target}%
+            </Badge>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

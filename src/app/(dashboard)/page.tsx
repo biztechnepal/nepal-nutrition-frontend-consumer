@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { DashboardView } from "@/features/Dashboard/DashboardView";
 
 export const metadata = {
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <DashboardView />;
+  return (
+    <Suspense fallback={null}>
+      <DashboardView />
+    </Suspense>
+  );
 }

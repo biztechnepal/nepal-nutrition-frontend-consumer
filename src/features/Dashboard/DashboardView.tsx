@@ -1,35 +1,58 @@
 "use client";
 
-import React from "react";
-import NepalMap from "@/components/d3/NepalMap";
-import { DistrictSidebar } from "./components/DistrictSidebar";
-import { ProvinceTable } from "./components/ProvinceTable";
 import { IndicatorCard } from "./components/IndicatorCard";
-import { DashboardHeader } from "./components/DashboardHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Baby, Accessibility, User2, Milk, Info } from "lucide-react";
-import { useState } from "react";
+import {
+  Info,
+  Baby,
+  Accessibility,
+  Scale,
+  User2,
+  Activity,
+  Droplets,
+} from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import NepalMap from "@/components/d3/NepalMap";
+import { ProvinceTable } from "./components/ProvinceTable";
 
 export const DashboardView = () => {
-  const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const selectedProvince = searchParams.get("province");
+
+  const handleProvinceClick = (province: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (province) {
+      params.set("province", province);
+    } else {
+      params.delete("province");
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleReset = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("province");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   return (
-    <div className="w-full bg-[#FAFAFA] min-h-screen pt-20 pb-12 overflow-y-auto">
-      <div className="w-full px-4 sm:px-8 lg:px-12 flex flex-col gap-6">
-        <DashboardHeader />
-
-        {/* 1. Hero Visualization Row: Overview, Map, and Selectors */}
-        <div className="grid grid-cols-12 gap-8 items-stretch h-full lg:max-h-[480px]">
+    <div className="w-full bg-[#FAFAFA] min-h-screen pb-20">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-8 flex flex-col gap-8 mt-8">
+        {/* 1. Hero Visualization Row: Map, Overview, and Selectors */}
+        <div className="grid grid-cols-12 gap-6 items-stretch h-full lg:max-h-[560px]">
           {/* Strategic Overview */}
-          <div className="col-span-12 lg:col-span-3 h-full lg:max-h-[480px]">
+          <div className="col-span-12 lg:col-span-3 h-full lg:max-h-[560px]">
             <Card className="h-full bg-white border-border/40 shadow-xl rounded-2xl flex flex-col border-t-2 border-t-primary">
               <CardHeader className="border-b border-border/50 flex flex-row items-center bg-muted/5 space-y-0 text-left">
                 <Info size={14} className="text-primary" />
-                <CardTitle className="text-[10px] font-black text-secondary uppercase tracking-widest">
+                <CardTitle className="text-[10px] font-black text-secondary uppercase tracking-widest ml-2">
                   Strategic Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="overflow-auto p-0">
+              <CardContent className="overflow-auto p-0 grow">
                 <div className="p-5 text-[11px] leading-7 text-foreground/70 font-medium text-justify space-y-4">
                   <p>
                     Nepal is actively addressing the persistent malnutrition
@@ -52,7 +75,7 @@ export const DashboardView = () => {
                     technologies. By empowering local health volunteers, Nepal
                     aims to break the intergenerational cycle of malnutrition.
                   </p>
-                  <div className="bg-secondary/5 rounded-xl border border-secondary/10 mt-2 p-2">
+                  <div className="bg-secondary/5 rounded-xl border border-secondary/10 mt-2 p-3">
                     <span className="block text-[10px] font-black text-secondary uppercase mb-2 tracking-wider">
                       Targets for 2030
                     </span>
@@ -74,65 +97,117 @@ export const DashboardView = () => {
           </div>
 
           {/* Nepal Map Centerpiece */}
-          <div className="col-span-12 lg:col-span-6 h-full lg:max-h-[480px]">
-            <Card className="h-full bg-white border border-border/20 rounded-lg p-2 flex items-center justify-center relative shadow-inner">
+          <div className="col-span-12 lg:col-span-6 h-full lg:max-h-[560px]">
+            <Card className="h-full bg-white border border-border/20 rounded-2xl p-2 flex items-center justify-center relative shadow-inner">
               <div className="w-full h-full relative z-10 flex items-center justify-center min-h-[300px]">
                 <NepalMap
                   selectedProvince={selectedProvince}
-                  onReset={() => setSelectedProvince(null)}
+                  onReset={handleReset}
                 />
               </div>
             </Card>
           </div>
 
-          {/* Right Side Selectors Explorer - Side by Side */}
-          <div className="col-span-12 lg:col-span-3 grid grid-cols-2 gap-2 h-full lg:max-h-[480px]">
-            <div className="h-full min-h-0">
-              <DistrictSidebar />
-            </div>
-            <div className="h-full min-h-0">
+          {/* Right Side Selectors Explorer */}
+          <div className="col-span-12 lg:col-span-3 h-fit lg:max-h-[560px]">
+            <div className="h-fit min-h-0 text-left">
               <ProvinceTable
                 selectedProvince={selectedProvince}
-                onProvinceClick={setSelectedProvince}
+                onProvinceClick={handleProvinceClick}
               />
             </div>
           </div>
         </div>
 
         {/* 2. Key Performance Indicators Section */}
-        <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 bg-primary rounded-full" />
+            <h2 className="text-[14px] font-black uppercase tracking-[0.25em] text-secondary">
+              Impact Indicators Overview
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             <IndicatorCard
               title="Stunting"
-              value="24.5"
+              subtitle="Children < 5y • SDG 2.2.1"
+              value="24.8"
+              target="15"
               status="error"
               icon={<Baby size={16} />}
             />
             <IndicatorCard
               title="Wasting"
-              value="8.1"
-              secondaryLabel="Mod. cases"
-              secondaryValue="2.1"
-              status="success"
+              subtitle="Children < 5y • SDG 2.2.2"
+              value="7.6"
+              target="4"
+              status="warning"
               icon={<Accessibility size={16} />}
             />
             <IndicatorCard
-              title="Children Anemia"
-              value="43.2"
+              title="Low Birth Weight"
+              subtitle="Newborn Health Indicator"
+              value="12.4"
+              target="8"
               status="warning"
               icon={<Baby size={16} />}
             />
             <IndicatorCard
-              title="Women Anemia"
-              value="34.2"
+              title="Underweight"
+              subtitle="Children < 5y • SDG 2.2.2.1"
+              value="18.2"
+              target="10"
+              status="error"
+              icon={<Scale size={16} />}
+            />
+            <IndicatorCard
+              title="Child Overweight"
+              subtitle="Children Under 5 years"
+              value="2.8"
+              target="5"
+              status="success"
+              icon={<Scale size={16} />}
+            />
+            <IndicatorCard
+              title="Adol. Overweight"
+              subtitle="Adolescents (10-19y)"
+              value="14.2"
+              target="12.5"
+              status="warning"
+              icon={<User2 size={16} />}
+            />
+            <IndicatorCard
+              title="Adult Overweight"
+              subtitle="Age group 15-69y"
+              value="21.5"
+              target="18"
               status="error"
               icon={<User2 size={16} />}
             />
             <IndicatorCard
-              title="BreastFeeding"
-              value="62.1"
-              status="success"
-              icon={<Milk size={16} />}
+              title="Women Low BMI"
+              subtitle="Reproductive Age • < 18.5"
+              value="17.4"
+              target="12"
+              status="warning"
+              icon={<Activity size={16} />}
+            />
+            <IndicatorCard
+              title="Child Anaemia"
+              subtitle="Children < 5y • SDG 2.2.5"
+              value="43.2"
+              target="20"
+              status="error"
+              icon={<Droplets size={16} />}
+            />
+            <IndicatorCard
+              title="Women Anaemia"
+              subtitle="Reproductive Age • SDG 2.2.4"
+              value="34.2"
+              target="18"
+              status="error"
+              icon={<Droplets size={16} />}
             />
           </div>
         </div>

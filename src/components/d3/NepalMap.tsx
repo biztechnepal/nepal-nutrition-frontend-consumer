@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import * as topojson from "topojson-client";
 import { CustomProjection } from "@visx/geo";
 import { geoAlbers } from "d3-geo";
@@ -9,10 +9,12 @@ import { localPoint } from "@visx/event";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Topology, GeometryCollection } from "topojson-specification";
-import { Geometry, FeatureCollection } from "geojson";
+import { Geometry, FeatureCollection, Feature } from "geojson";
 
 // Import your TopoJSON file
 import nepalTopologyImport from "@/data/province.topo.json";
+import { PROVINCE_COLORS, getDisplayName } from "@/constants/provinces";
+
 const nepalTopology = nepalTopologyImport as unknown as Topology;
 
 interface MapProperties {
@@ -42,6 +44,114 @@ interface NepalMapProps {
   onHover?: (province: string | null) => void;
 }
 
+const getRankingColor = (ranking: string) => {
+  switch (ranking) {
+    case "Off Track":
+      return "bg-[#8b2b2b] text-white";
+    case "In Progress":
+      return "bg-[#c19412] text-white";
+    case "On Track":
+      return "bg-[#2b8b2b] text-white";
+    default:
+      return "bg-transparent text-foreground/60";
+  }
+};
+
+const MapPaths = React.memo(
+  ({
+    features,
+    width,
+    height,
+    selectedProvince,
+    onHoverProvince,
+  }: {
+    features: Feature<Geometry, MapProperties>[];
+    width: number;
+    height: number;
+    selectedProvince?: string | null;
+    onHoverProvince: (
+      point: { x: number; y: number } | null,
+      name: string | null,
+    ) => void;
+  }) => {
+    return (
+      <CustomProjection
+        data={features}
+        projection={() =>
+          geoAlbers()
+            .rotate([-84.124, 0])
+            .center([0, 28.3949])
+            .parallels([26, 30])
+        }
+        fitSize={[
+          [width * 0.9, height * 0.9],
+          {
+            type: "FeatureCollection",
+            features,
+          } as any,
+        ]}
+      >
+        {({ features: projectedFeatures }) => (
+          <g
+            transform={`translate(${width * 0.05}, ${height * 0.05})`}
+            className="nepal-map-group"
+          >
+            <style>{`
+              .nepal-map-group .nepal-province {
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+              }
+              .nepal-map-group .nepal-province:hover {
+                transform: scale(1.02);
+                filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.25));
+                stroke-width: 1.5px !important;
+                z-index: 50;
+              }
+            `}</style>
+            {projectedFeatures.map(({ feature, path }) => {
+              const provinceName =
+                feature.properties.PR_NAME || feature.properties.name || "";
+              const displayName = getDisplayName(provinceName);
+              const color = PROVINCE_COLORS[displayName] || "var(--primary)";
+              const isSelected = selectedProvince === displayName;
+              const isOtherSelected =
+                selectedProvince && selectedProvince !== displayName;
+
+              return (
+                <path
+                  key={displayName}
+                  d={path || ""}
+                  fill={color}
+                  stroke={isSelected ? "#000000" : "#ffffff"}
+                  strokeWidth={isSelected ? 1.5 : 0.5}
+                  className="nepal-province outline-none cursor-pointer"
+                  style={{
+                    opacity: isOtherSelected ? 0.3 : 0.85,
+                    transformOrigin: "center",
+                    transformBox: "fill-box",
+                  }}
+                  onMouseEnter={(event) => {
+                    const point = localPoint(event);
+                    if (point) onHoverProvince(point, displayName);
+                  }}
+                  onMouseMove={(event) => {
+                    const point = localPoint(event);
+                    if (point) onHoverProvince(point, displayName);
+                  }}
+                  onMouseLeave={() => {
+                    onHoverProvince(null, null);
+                  }}
+                />
+              );
+            })}
+          </g>
+        )}
+      </CustomProjection>
+    );
+  },
+);
+
+MapPaths.displayName = "MapPaths";
+
 export default function NepalMap({
   selectedProvince,
   onReset,
@@ -53,67 +163,28 @@ export default function NepalMap({
     province: string;
   } | null>(null);
 
-  // 1. Stable Province Metadata for Color Consistency
-  const provinceMeta: Record<string, { opacity: number }> = {
-    "Province No 1": { opacity: 0.4 },
-    "Province No 2": { opacity: 0.5 },
-    "Bagmati Pradesh": { opacity: 0.6 },
-    "Gandaki Pradesh": { opacity: 0.7 },
-    "Province No 5": { opacity: 0.8 },
-    "Karnali Pradesh": { opacity: 0.9 },
-    "Sudurpashchim Pradesh": { opacity: 1.0 },
-    // Fallbacks for display names
-    Koshi: { opacity: 0.4 },
-    Madhesh: { opacity: 0.5 },
-    Bagmati: { opacity: 0.6 },
-    Gandaki: { opacity: 0.7 },
-    Lumbini: { opacity: 0.8 },
-    Karnali: { opacity: 0.9 },
-    Sudurpashchim: { opacity: 1.0 },
-  };
+  const handleHoverProvince = useCallback(
+    (point: { x: number; y: number } | null, name: string | null) => {
+      if (point && name) {
+        setTooltip((prev) => {
+          if (
+            prev &&
+            prev.x === point.x &&
+            prev.y === point.y &&
+            prev.province === name
+          ) {
+            return prev;
+          }
+          return { x: point.x, y: point.y, province: name };
+        });
+      } else {
+        setTooltip(null);
+      }
+      if (onHover) onHover(name);
+    },
+    [onHover],
+  );
 
-  const provinceMappingToDisplay: Record<string, string> = {
-    "Province No 1": "Koshi",
-    "Province No 2": "Madhesh",
-    "Bagmati Pradesh": "Bagmati",
-    "Gandaki Pradesh": "Gandaki",
-    "Province No 5": "Lumbini",
-    "Karnali Pradesh": "Karnali",
-    "Sudurpashchim Pradesh": "Sudurpashchim",
-  };
-
-  const getProvinceOpacity = (name: string) => {
-    const key = Object.keys(provinceMeta).find(
-      (k) =>
-        name.toLowerCase().includes(k.toLowerCase()) ||
-        k.toLowerCase().includes(name.toLowerCase()),
-    );
-    return key ? provinceMeta[key].opacity : 0.6;
-  };
-
-  const getDisplayName = (name: string) => {
-    const key = Object.keys(provinceMappingToDisplay).find(
-      (k) =>
-        name.toLowerCase().includes(k.toLowerCase()) ||
-        k.toLowerCase().includes(name.toLowerCase()),
-    );
-    return key ? provinceMappingToDisplay[key] : name;
-  };
-
-  const getRankingColor = (ranking: string) => {
-    switch (ranking) {
-      case "Off Track":
-        return "bg-[#8b2b2b] text-white";
-      case "In Progress":
-        return "bg-[#c19412] text-white";
-      case "On Track":
-        return "bg-[#2b8b2b] text-white";
-      default:
-        return "bg-transparent text-foreground/60";
-    }
-  };
-
-  // 2. Convert TopoJSON to GeoJSON Features
   const worldData = useMemo(() => {
     const objectKey = Object.keys(nepalTopology.objects)[0];
     const geometryCollection = nepalTopology.objects[
@@ -127,7 +198,6 @@ export default function NepalMap({
 
     const allFeatures = geo.features;
 
-    // Filter by selected province if provided
     if (selectedProvince) {
       const provinceMapping: Record<string, string> = {
         Koshi: "Province No 1",
@@ -173,93 +243,27 @@ export default function NepalMap({
 
       <ParentSize>
         {({ width, height }) => (
-          <svg
-            width={width}
-            height={height}
-            onMouseLeave={() => {
-              setTooltip(null);
-              if (onHover) onHover(null);
-            }}
+          <div
+            className="w-full h-full"
+            onMouseLeave={() => handleHoverProvince(null, null)}
           >
-            <CustomProjection
-              data={worldData}
-              projection={() =>
-                geoAlbers()
-                  .rotate([-84.124, 0])
-                  .center([0, 28.3949])
-                  .parallels([26, 30])
-              }
-              fitSize={[
-                [width * 0.9, height * 0.9],
-                // Casting to 'any' here as @visx/geo fitsSize prop has a type conflict with standard GeoJSON collections
-                {
-                  type: "FeatureCollection",
-                  features: worldData,
-                } as any,
-              ]}
-            >
-              {({ features }) => (
-                <g transform={`translate(${width * 0.05}, ${height * 0.05})`}>
-                  {features.map(({ feature, path }, i) => {
-                    const provinceName =
-                      feature.properties.PR_NAME ||
-                      feature.properties.name ||
-                      "";
-                    const opacity = getProvinceOpacity(provinceName);
-                    const displayName = getDisplayName(provinceName);
-
-                    return (
-                      <path
-                        key={`province-${i}`}
-                        d={path || ""}
-                        fill="var(--primary)"
-                        fillOpacity={opacity}
-                        stroke="var(--secondary)"
-                        strokeWidth={selectedProvince ? 1 : 0.5}
-                        className="transition-all duration-300 hover:fill-opacity-100 hover:scale-[1.01] cursor-pointer outline-none"
-                        style={{
-                          transformOrigin: "center",
-                          transformBox: "fill-box",
-                        }}
-                        onMouseEnter={(event) => {
-                          const point = localPoint(event);
-                          if (point) {
-                            setTooltip({
-                              x: point.x,
-                              y: point.y,
-                              province: displayName,
-                            });
-                          }
-                          if (onHover) onHover(displayName);
-                        }}
-                        onMouseMove={(event) => {
-                          const point = localPoint(event);
-                          if (point) {
-                            setTooltip({
-                              x: point.x,
-                              y: point.y,
-                              province: displayName,
-                            });
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          setTooltip(null);
-                          if (onHover) onHover(null);
-                        }}
-                      />
-                    );
-                  })}
-                </g>
-              )}
-            </CustomProjection>
-          </svg>
+            <svg width={width} height={height}>
+              <MapPaths
+                features={worldData}
+                width={width}
+                height={height}
+                selectedProvince={selectedProvince}
+                onHoverProvince={handleHoverProvince}
+              />
+            </svg>
+          </div>
         )}
       </ParentSize>
 
       {/* Tooltip Popup */}
       {tooltip && (
         <div
-          className="absolute z-50 pointer-events-none transition-all duration-100 ease-out"
+          className="absolute z-50 pointer-events-none transition-all duration-75 ease-out"
           style={{
             left: tooltip.x + 15,
             top: tooltip.y + 15,
@@ -281,11 +285,11 @@ export default function NepalMap({
               </div>
               <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
                 <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
-                  District
+                  Status
                 </div>
                 <div className="p-1.5 text-center">
                   <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
-                    Kathmandu
+                    Active
                   </span>
                 </div>
               </div>

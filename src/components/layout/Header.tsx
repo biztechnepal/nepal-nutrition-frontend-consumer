@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Mountain, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -29,7 +30,7 @@ const Header = () => {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "Nutrition Indicators", href: "/indicators" },
+    { name: "Nutrition Indicators", href: "/nutrition-indicators" },
     { name: "Others", href: "/others" },
   ];
 
@@ -38,18 +39,23 @@ const Header = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-background/80 backdrop-blur-md border-b border-border py-4"
-          : "bg-transparent py-6",
+          ? "bg-background/80 backdrop-blur-md py-2"
+          : "bg-transparent py-3",
       )}
     >
-      <div className="w-full px-6 sm:px-10 lg:px-16 flex items-center justify-between">
+      <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 group">
-          <div className="p-2 bg-secondary/30 rounded-xl group-hover:bg-secondary transition-colors">
-            <Mountain className="w-6 h-6 text-primary" />
+          <div className="relative w-7 h-7 group-hover:scale-105 transition-transform duration-300">
+            <Image
+              src="/images/emblem-of-nepal-seeklogo.svg"
+              alt="Emblem of Nepal"
+              fill
+              className="object-contain"
+            />
           </div>
-          <span className="text-xl font-bold tracking-tight text-secondary">
-            Nepal<span className="text-primary">Nutrition</span>
+          <span className="text-xl font-black tracking-tight text-secondary">
+            INIMS
           </span>
         </Link>
 
@@ -82,8 +88,7 @@ const Header = () => {
           </NavigationMenu>
           <Button
             asChild
-            size="lg"
-            className="rounded-full shadow-lg shadow-primary/20 px-8"
+            className="rounded-full shadow-lg shadow-primary/20 px-6"
           >
             <Link href="/explore">Explore Map</Link>
           </Button>
@@ -109,14 +114,19 @@ const Header = () => {
                 {/* Drawer Header */}
                 <div className="px-8 pt-10 pb-6 border-b border-border/50 bg-muted/20">
                   <div className="flex items-center space-x-2 mb-2">
-                    <div className="p-1.5 bg-secondary/30 rounded-lg">
-                      <Mountain className="w-5 h-5 text-primary" />
+                    <div className="relative w-6 h-6">
+                      <Image
+                        src="/images/emblem-of-nepal-seeklogo.svg"
+                        alt="Emblem of Nepal"
+                        fill
+                        className="object-contain"
+                      />
                     </div>
-                    <span className="text-lg font-bold tracking-tight text-secondary">
-                      Nepal<span className="text-primary">Nutrition</span>
+                    <span className="text-lg font-bold tracking-tight text-secondary leading-tight mt-1">
+                      INIMS
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground font-medium">
+                  <p className="text-sm text-muted-foreground font-medium mt-2">
                     Data-Driven Insights
                   </p>
                 </div>
@@ -148,6 +158,12 @@ const Header = () => {
                         </div>
                       </Link>
                     ))}
+                    <Link
+                      href="/nutrition-indicators"
+                      className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] hover:text-primary transition-colors"
+                    >
+                      Nutrition Indicators
+                    </Link>
                   </nav>
                 </div>
 
