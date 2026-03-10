@@ -1,9 +1,8 @@
-import React, { Suspense } from "react";
+import React from "react";
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import { FilterBar } from "@/components/layout/FilterBar";
+import MainNavigation from "@/components/layout/MainNavigation";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,13 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${inter.variable} ${geistMono.variable} antialiased min-h-screen bg-background pt-28`}
       >
-        <Header />
-        <Suspense fallback={null}>
-          <FilterBar />
-        </Suspense>
-        <main className="w-full">{children}</main>
+        <MainNavigation />
+        <main className="w-full p-4 sm:p-6 lg:p-8">{children}</main>
       </body>
     </html>
   );

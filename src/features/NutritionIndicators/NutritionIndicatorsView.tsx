@@ -15,8 +15,8 @@ export const NutritionIndicatorsView = () => {
     : ALL_PROVINCES_DATA;
 
   return (
-    <div className="w-full bg-[#FAFAFA] min-h-screen pb-20">
-      <div className="w-full px-4 sm:px-6 lg:px-8 pt-8">
+    <div className="w-full bg-[#FAFAFA] min-h-screen">
+      <div className="w-full">
         <div className="flex flex-col gap-8">
           {/* Main Visualizations List */}
           <div className="w-full flex flex-col gap-10">

@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useTransition } from "react";
-import {
-  ChevronDown,
-  Filter,
-  CalendarDays,
-  MapPin,
-  Activity,
-  Check,
-} from "lucide-react";
+import { ChevronDown, Filter, CalendarDays, MapPin, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -47,7 +40,7 @@ export const FilterBar = () => {
   };
 
   return (
-    <div className="w-full border-b border-border/60 sticky top-[44px] z-40 shadow-sm backdrop-blur-md bg-background/80 mt-[52px]">
+    <div className="w-full">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left Side: INIMS Full Form */}
         <div className="flex items-center gap-2 text-sm text-left">
