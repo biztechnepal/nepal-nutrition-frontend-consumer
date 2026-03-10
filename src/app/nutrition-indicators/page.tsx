@@ -1,10 +1,5 @@
-import React, { Suspense } from "react";
-import { NutritionIndicatorsView } from "@/features/NutritionIndicators/NutritionIndicatorsView";
+import { redirect } from "next/navigation";
 
 export default function NutritionIndicatorsPage() {
-  return (
-    <Suspense fallback={null}>
-      <NutritionIndicatorsView />
-    </Suspense>
-  );
+  redirect("/nutrition-indicators/overview");
 }

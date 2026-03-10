@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MainNavigation from "@/components/layout/MainNavigation";
+import ContentContainer from "@/components/layout/ContentContainer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,7 +31,7 @@ export default function RootLayout({
         className={`${inter.variable} ${geistMono.variable} antialiased min-h-screen bg-background pt-28`}
       >
         <MainNavigation />
-        <main className="w-full p-4 sm:p-6 lg:p-8">{children}</main>
+        <ContentContainer>{children}</ContentContainer>
       </body>
     </html>
   );

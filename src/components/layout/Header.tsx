@@ -39,7 +39,10 @@ const Header = () => {
             />
           </div>
           <span className="text-xl font-black tracking-tight text-secondary">
-            INIMS
+            <span className="hidden sm:inline">
+              Integrated Nutrition Information Management System (INIMS)
+            </span>
+            <span className="sm:hidden">INIMS</span>
           </span>
         </Link>
 
@@ -55,13 +58,19 @@ const Header = () => {
                       className={cn(
                         navigationMenuTriggerStyle(),
                         "bg-transparent px-4 transition-all relative overflow-hidden",
-                        pathname === link.href
+                        (
+                          link.href === "/"
+                            ? pathname === "/"
+                            : pathname.startsWith(link.href)
+                        )
                           ? "text-primary font-bold bg-primary/5"
                           : "hover:bg-primary/5 hover:text-primary text-muted-foreground",
                       )}
                     >
                       {link.name}
-                      {pathname === link.href && (
+                      {(link.href === "/"
+                        ? pathname === "/"
+                        : pathname.startsWith(link.href)) && (
                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-in fade-in slide-in-from-bottom-1 duration-300" />
                       )}
                     </Link>

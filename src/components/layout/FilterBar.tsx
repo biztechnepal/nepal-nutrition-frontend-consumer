@@ -42,23 +42,10 @@ export const FilterBar = () => {
   return (
     <div className="w-full">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Left Side: INIMS Full Form */}
-        <div className="flex items-center gap-2 text-sm text-left">
-          <div className="text-primary font-black">
-            <span className="tracking-tight text-[13px]">
-              Integrated Nutrition Information Management System
-            </span>
-          </div>
-          {isPending && (
-            <div className="ml-2 w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
-          )}
-        </div>
-
-        {/* Right Side: Action Filters */}
         <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
           <div className="flex items-center gap-2 border-r border-border/50 pr-3 shrink-0">
             <Filter size={14} className="text-muted-foreground" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+            <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hidden md:block">
               Filters
             </span>
           </div>
