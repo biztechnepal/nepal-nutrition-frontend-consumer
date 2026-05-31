@@ -52,7 +52,7 @@ export const DashboardView = () => {
             <Card className="h-full bg-white border-border/40 shadow-xl rounded-2xl flex flex-col border-t-2 border-t-primary">
               <CardHeader className="border-b border-border/50 flex flex-row items-center bg-muted/5 space-y-0 text-left">
                 <Info size={14} className="text-primary" />
-                <CardTitle className="text-[10px] font-black text-secondary uppercase tracking-widest ml-2">
+                <CardTitle className="text-[11px] font-black text-secondary ml-2">
                   Strategic Overview
                 </CardTitle>
               </CardHeader>
@@ -82,7 +82,7 @@ export const DashboardView = () => {
                     aims to break the intergenerational cycle of malnutrition.
                   </p>
                   <div className="bg-secondary/5 rounded-xl border border-secondary/10 mt-2 p-3">
-                    <span className="block text-[10px] font-black text-secondary uppercase mb-2 tracking-wider">
+                    <span className="block text-[11px] font-black text-secondary mb-2">
                       Targets for 2030
                     </span>
                     <ul className="list-disc list-inside space-y-2 text-[10px] font-bold">
@@ -129,7 +129,7 @@ export const DashboardView = () => {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 bg-primary rounded-full" />
-            <h2 className="text-[14px] font-black uppercase tracking-[0.25em] text-secondary">
+            <h2 className="text-[15px] font-black text-secondary">
               Impact Indicators Overview - {selectedProvince || "National"}
             </h2>
           </div>
@@ -281,7 +281,7 @@ export const DashboardView = () => {
             <div className="w-1.5 h-1.5 rounded-full bg-border" />
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/30 animate-pulse delay-150" />
           </div>
-          <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest opacity-60">
+          <p className="text-[11px] text-muted-foreground font-bold opacity-60">
             MSNP III Progressive Visualization System &bull; Active Data Feed
           </p>
         </div>

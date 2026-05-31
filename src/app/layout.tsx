@@ -1,13 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MainNavigation from "@/components/layout/MainNavigation";
 import ContentContainer from "@/components/layout/ContentContainer";
 import Footer from "@/components/layout/Footer";
 
-const inter = Inter({
-  variable: "--font-inter",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${geistMono.variable} antialiased min-h-screen bg-background pt-28 flex flex-col`}
+        className={`${outfit.variable} ${geistMono.variable} antialiased min-h-screen bg-background pt-28 flex flex-col`}
       >
         <MainNavigation />
         <ContentContainer>{children}</ContentContainer>

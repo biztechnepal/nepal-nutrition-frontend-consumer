@@ -32,7 +32,7 @@ export const NutritionSidebar = () => {
       <aside className="hidden lg:flex w-72 shrink-0 flex-col bg-white border-r border-gray-100 h-[calc(100vh-112px)] sticky top-[112px] overflow-y-auto no-scrollbar">
         <div className="flex flex-col py-6">
           <div className="px-6 mb-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+            <h3 className="text-[11px] font-black text-muted-foreground/60">
               Indicators
             </h3>
           </div>
@@ -78,7 +78,7 @@ export const NutritionSidebar = () => {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "whitespace-nowrap px-4 py-2 text-[12px] font-black uppercase tracking-wider rounded-full transition-all duration-300",
+                  "whitespace-nowrap px-4 py-2 text-[12px] font-black rounded-full transition-all duration-300",
                   isActive
                     ? "bg-secondary text-white shadow-sm"
                     : "text-secondary/50 hover:text-secondary hover:bg-gray-100",

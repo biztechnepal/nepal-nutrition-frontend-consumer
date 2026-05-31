@@ -42,11 +42,11 @@ export const IndicatorCard = ({
       <CardContent className="p-3 pl-4 flex flex-col gap-1.5 min-h-[115px] justify-between">
         <div className="flex justify-between items-start gap-2">
           <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-black text-secondary uppercase leading-tight truncate mb-0.5">
+            <span className="text-[12px] font-black text-secondary leading-tight truncate mb-0.5">
               {title}
             </span>
             {subtitle && (
-              <span className="text-[9px] font-bold text-muted-foreground uppercase opacity-70 leading-tight line-clamp-2">
+              <span className="text-[10px] font-bold text-muted-foreground opacity-70 leading-tight line-clamp-2">
                 {subtitle}
               </span>
             )}
@@ -68,14 +68,14 @@ export const IndicatorCard = ({
           <span className="text-2xl font-black tracking-tighter text-secondary leading-none">
             {value}
           </span>
-          <span className="text-[10px] font-black opacity-30 uppercase tracking-widest">
+          <span className="text-[10px] font-black opacity-30">
             %
           </span>
         </div>
 
         {target && (
           <div className="flex items-center justify-between border-t border-border/20 pt-2 mt-0.5">
-            <span className="text-[8px] font-black text-muted-foreground/60 uppercase tracking-tighter">
+            <span className="text-[9px] font-black text-muted-foreground/60 tracking-tight">
               2030 Target
             </span>
             <Badge
