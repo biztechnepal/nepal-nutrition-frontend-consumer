@@ -5,6 +5,7 @@ import "./globals.css";
 import MainNavigation from "@/components/layout/MainNavigation";
 import ContentContainer from "@/components/layout/ContentContainer";
 import Footer from "@/components/layout/Footer";
+import Providers from "@/components/providers/Providers";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -31,9 +32,11 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${geistMono.variable} antialiased min-h-screen bg-background pt-28 flex flex-col`}
       >
-        <MainNavigation />
-        <ContentContainer>{children}</ContentContainer>
-        <Footer />
+        <Providers>
+          <MainNavigation />
+          <ContentContainer>{children}</ContentContainer>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

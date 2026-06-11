@@ -4,20 +4,32 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { QueryKeys } from "@/constants/query-keys";
+import { getContent } from "@/services/content.service";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 const Header = () => {
   const pathname = usePathname();
+
+  const { data: contentData } = useQuery({
+    queryKey: [QueryKeys.CONTENT],
+    queryFn: getContent,
+  });
+
+  const contentItems = contentData?.data ?? [];
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -77,6 +89,36 @@ const Header = () => {
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
+              {contentItems.length > 0 && (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="bg-transparent px-4 text-muted-foreground hover:bg-primary/5 hover:text-primary">
+                    Resources
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="z-50">
+                    <ul className="grid w-48 gap-1 p-2 rounded-md border bg-popover shadow-md">
+                      {contentItems.map((item) => (
+                        <li key={item.id}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href={`/contents/${item.slug}`}
+                              className={cn(
+                                "block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                pathname === `/contents/${item.slug}`
+                                  ? "bg-accent/50 text-accent-foreground"
+                                  : "text-muted-foreground",
+                              )}
+                            >
+                              <span className="text-sm font-medium truncate block">
+                                {item.title}
+                              </span>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              )}
             </NavigationMenuList>
           </NavigationMenu>
         </nav>
@@ -97,6 +139,7 @@ const Header = () => {
               side="right"
               className="w-full sm:max-w-sm p-0 border-l-border/40"
             >
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="flex flex-col h-full">
                 {/* Drawer Header */}
                 <div className="px-8 pt-10 pb-6 border-b border-border/50 bg-muted/20">
@@ -145,6 +188,27 @@ const Header = () => {
                         </div>
                       </Link>
                     ))}
+                    {contentItems.length > 0 && (
+                      <>
+                        <div className="px-4 pt-4 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Resources
+                        </div>
+                        {contentItems.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/contents/${item.slug}`}
+                            className={cn(
+                              "px-4 py-3 rounded-xl text-base font-medium transition-all flex items-center justify-between group",
+                              pathname === `/contents/${item.slug}`
+                                ? "bg-primary/10 text-primary shadow-sm"
+                                : "text-foreground hover:bg-muted",
+                            )}
+                          >
+                            {item.title}
+                          </Link>
+                        ))}
+                      </>
+                    )}
                   </nav>
                 </div>
               </div>
