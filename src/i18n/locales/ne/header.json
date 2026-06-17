@@ -1,0 +1,14 @@
+{
+  "appName": "एकीकृत पोषण सूचना व्यवस्थापन प्रणाली (INIMS)",
+  "appNameShort": "INIMS",
+  "tagline": "डाटा-संचालित अन्तर्दृष्टिहरू",
+  "home": "गृहपृष्ठ",
+  "nutritionIndicators": "पोषण सूचकहरू",
+  "contactUs": "सम्पर्क गर्नुहोस्",
+  "resources": "स्रोतहरू",
+  "selectYear": "वर्ष चयन गर्नुहोस्",
+  "selectProvince": "प्रदेश चयन गर्नुहोस्",
+  "allProvinces": "सबै प्रदेशहरू",
+  "province": "प्रदेश",
+  "navigationMenu": "नेभिगेसन मेनु"
+}

@@ -112,3 +112,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  [data-grid-container] {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    [data-grid-container] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+}

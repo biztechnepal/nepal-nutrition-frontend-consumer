@@ -8,20 +8,22 @@ import { cn } from "@/lib/utils";
 import { QueryKeys } from "@/constants/query-keys";
 import { getContentDetails, getChildContentDetails } from "@/services/content.service";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLocale } from "@/features/i18n/hooks/useLocale";
 
 export default function ContentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { locale } = useLocale();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
   const { data: parentData, isLoading: parentLoading } = useQuery({
-    queryKey: [QueryKeys.CONTENTDETAIL, slug],
-    queryFn: () => getContentDetails(slug),
+    queryKey: [QueryKeys.CONTENTDETAIL, slug, locale],
+    queryFn: () => getContentDetails(slug, locale),
     enabled: !!slug,
   });
 
   const { data: childDetailData, isLoading: childDetailLoading } = useQuery({
-    queryKey: [QueryKeys.CHILDCONTENTDETAIL, selectedChildId],
-    queryFn: () => getChildContentDetails(selectedChildId!),
+    queryKey: [QueryKeys.CHILDCONTENTDETAIL, selectedChildId, locale],
+    queryFn: () => getChildContentDetails(selectedChildId!, locale),
     enabled: !!selectedChildId,
   });
 
@@ -55,8 +57,8 @@ export default function ContentDetailPage() {
     : null;
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-8">
-      <aside className="w-full lg:w-72 shrink-0">
+      <div className="py-8 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <aside className="w-full lg:w-60 shrink-0">
         <ScrollArea className="h-[calc(100vh-200px)]">
           <nav className="space-y-1">
             <button
@@ -105,7 +107,7 @@ export default function ContentDetailPage() {
               </div>
             </header>
             <div
-              className="prose prose-gray max-w-none"
+              className="prose prose-gray prose-sm md:prose-base lg:prose-lg max-w-none"
               dangerouslySetInnerHTML={{ __html: rightContent.htmlContent }}
             />
           </article>

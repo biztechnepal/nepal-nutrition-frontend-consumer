@@ -1,156 +1,95 @@
 "use client";
 
-import React, { useTransition } from "react";
-import { ChevronDown, Filter, CalendarDays, MapPin, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
+import { QueryKeys } from "@/constants/query-keys";
+import { getContent } from "@/services/content.service";
+import { useLocale } from "@/features/i18n/hooks/useLocale";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { PROVINCE_COLORS } from "@/constants/provinces";
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
-const YEARS = ["2026", "2025", "2024", "2023", "2022"];
-const PROVINCES = Object.keys(PROVINCE_COLORS);
-
-export const FilterBar = () => {
-  const router = useRouter();
+export const NavigationBar = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const { t } = useTranslation("header");
+  const { locale } = useLocale();
 
-  const currentYear = searchParams.get("year") || "2026";
-  const currentProvince = searchParams.get("province") || null;
+  const { data: contentData } = useQuery({
+    queryKey: [QueryKeys.CONTENT, locale],
+    queryFn: () => getContent(locale),
+  });
 
-  const updateQueryParams = (key: string, value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
+  const contentItems = contentData?.data ?? [];
 
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`);
-    });
-  };
+  const navLinks = [
+    { name: t("home"), href: "/" },
+    { name: t("nutritionIndicators"), href: "/nutrition-indicators" },
+    { name: t("contactUs"), href: "/contact" },
+  ];
 
   return (
     <div className="w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-          <div className="flex items-center gap-2 border-r border-border/50 pr-3 shrink-0">
-            <Filter size={14} className="text-muted-foreground" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hidden md:block">
-              Filters
-            </span>
-          </div>
-
-          {/* Year Filter */}
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
-              >
-                <CalendarDays size={14} className="text-primary" />
-                <span className="font-bold text-secondary">{currentYear}</span>
-                <ChevronDown size={14} className="text-muted-foreground ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                Select Year
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {YEARS.map((year) => (
-                <DropdownMenuItem
-                  key={year}
-                  onClick={() => updateQueryParams("year", year)}
-                  className="flex items-center justify-between"
-                >
-                  <span
-                    className={
-                      currentYear === year ? "font-bold text-primary" : ""
-                    }
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center overflow-x-auto scrollbar-hide">
+        <NavigationMenu>
+          <NavigationMenuList>
+            {navLinks.map((link) => (
+              <NavigationMenuItem key={link.name}>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href={link.href}
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "bg-transparent px-4 transition-all relative overflow-hidden whitespace-nowrap",
+                      (
+                        link.href === "/"
+                          ? pathname === "/"
+                          : pathname.startsWith(link.href)
+                      )
+                        ? "text-primary font-bold bg-primary/5"
+                        : "hover:bg-primary/5 hover:text-primary text-muted-foreground",
+                    )}
                   >
-                    {year}
-                  </span>
-                  {currentYear === year && (
-                    <Check size={14} className="text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Province Filter */}
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
-              >
-                <MapPin
-                  size={14}
-                  className={
-                    currentProvince ? "text-primary" : "text-muted-foreground"
-                  }
-                />
-                <span className="font-bold text-secondary">
-                  {currentProvince ? currentProvince : "Province"}
-                </span>
-                <ChevronDown size={14} className="text-muted-foreground ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-56 max-h-[300px] overflow-y-auto"
-            >
-              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                Select Province
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => updateQueryParams("province", null)}
-                className="flex items-center justify-between"
-              >
-                <span
-                  className={!currentProvince ? "font-bold text-primary" : ""}
-                >
-                  All Provinces
-                </span>
-                {!currentProvince && (
-                  <Check size={14} className="text-primary" />
-                )}
-              </DropdownMenuItem>
-              {PROVINCES.map((prov) => (
-                <DropdownMenuItem
-                  key={prov}
-                  onClick={() => updateQueryParams("province", prov)}
-                  className="flex items-center justify-between"
-                >
-                  <span
-                    className={
-                      currentProvince === prov ? "font-bold text-primary" : ""
-                    }
+                    {link.name}
+                    {(link.href === "/"
+                      ? pathname === "/"
+                      : pathname.startsWith(link.href)) && (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                    )}
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+            {contentItems.map((item) => (
+              <NavigationMenuItem key={item.id}>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href={`/contents/${item.slug}`}
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "bg-transparent px-4 transition-all relative overflow-hidden whitespace-nowrap",
+                      pathname === `/contents/${item.slug}`
+                        ? "text-primary font-bold bg-primary/5"
+                        : "hover:bg-primary/5 hover:text-primary text-muted-foreground",
+                    )}
                   >
-                    {prov}
-                  </span>
-                  {currentProvince === prov && (
-                    <Check size={14} className="text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                    {item.title}
+                    {pathname === `/contents/${item.slug}` && (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                    )}
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
     </div>
   );

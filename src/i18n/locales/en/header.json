@@ -1,0 +1,14 @@
+{
+  "appName": "Integrated Nutrition Information Management System (INIMS)",
+  "appNameShort": "INIMS",
+  "tagline": "Data-Driven Insights",
+  "home": "Home",
+  "nutritionIndicators": "Nutrition Indicators",
+  "contactUs": "Contact Us",
+  "resources": "Resources",
+  "selectYear": "Select Year",
+  "selectProvince": "Select Province",
+  "allProvinces": "All Provinces",
+  "province": "Province",
+  "navigationMenu": "Navigation Menu"
+}
