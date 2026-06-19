@@ -6,6 +6,7 @@ import MainNavigation from "@/components/layout/MainNavigation";
 import ContentContainer from "@/components/layout/ContentContainer";
 import Footer from "@/components/layout/Footer";
 import Providers from "@/components/providers/Providers";
+import AccessibilityFab from "@/features/accessibility/AccessibilityFab";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -36,6 +37,7 @@ export default function RootLayout({
           <MainNavigation />
           <ContentContainer>{children}</ContentContainer>
           <Footer />
+          <AccessibilityFab />
         </Providers>
       </body>
     </html>

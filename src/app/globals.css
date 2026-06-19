@@ -46,9 +46,24 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --color-access-1: #e53935;
+  --color-access-2: #1e88e5;
+  --color-access-3: #43a047;
+  --color-access-4: #fb8c00;
+  --color-access-5: #8e24aa;
+  --color-access-6: #00acc1;
+  --color-access-7: #fdd835;
+  --color-access-8: #d81b60;
+  --color-access-9: #ffb300;
+  --color-access-10: #3949ab;
+  --color-access-11: #00bcd4;
+  --color-access-12: #c0ca33;
+  --color-access-13: #f4511e;
+  --color-access-14: #8d6e63;
 }
 
 :root {
+  --access-contrast-color: #e53935;
   --radius: 0.625rem;
   --background: oklch(0.985 0.003 247.88);
   --foreground: oklch(0.129 0.042 264.7);
@@ -125,3 +140,233 @@
     }
   }
 }
+
+html[data-accessibility-font-size="75"] body {
+  --spacing: calc(0.25rem * 0.75);
+  --text-xs: calc(0.75rem * 0.75);
+  --text-sm: calc(0.875rem * 0.75);
+  --text-base: calc(1rem * 0.75);
+  --text-lg: calc(1.125rem * 0.75);
+  --text-xl: calc(1.25rem * 0.75);
+  --text-2xl: calc(1.5rem * 0.75);
+  --text-3xl: calc(1.875rem * 0.75);
+  --text-4xl: calc(2.25rem * 0.75);
+  --text-5xl: calc(3rem * 0.75);
+  --text-6xl: calc(3.75rem * 0.75);
+}
+html[data-accessibility-font-size="75"] [data-slot="sheet-content"] {
+  --spacing: 0.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+}
+html[data-accessibility-font-size="125"] body {
+  --spacing: calc(0.25rem * 1.25);
+  --text-xs: calc(0.75rem * 1.25);
+  --text-sm: calc(0.875rem * 1.25);
+  --text-base: calc(1rem * 1.25);
+  --text-lg: calc(1.125rem * 1.25);
+  --text-xl: calc(1.25rem * 1.25);
+  --text-2xl: calc(1.5rem * 1.25);
+  --text-3xl: calc(1.875rem * 1.25);
+  --text-4xl: calc(2.25rem * 1.25);
+  --text-5xl: calc(3rem * 1.25);
+  --text-6xl: calc(3.75rem * 1.25);
+}
+html[data-accessibility-font-size="125"] [data-slot="sheet-content"] {
+  --spacing: 0.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+}
+html[data-accessibility-font-size="150"] body {
+  --spacing: calc(0.25rem * 1.5);
+  --text-xs: calc(0.75rem * 1.5);
+  --text-sm: calc(0.875rem * 1.5);
+  --text-base: calc(1rem * 1.5);
+  --text-lg: calc(1.125rem * 1.5);
+  --text-xl: calc(1.25rem * 1.5);
+  --text-2xl: calc(1.5rem * 1.5);
+  --text-3xl: calc(1.875rem * 1.5);
+  --text-4xl: calc(2.25rem * 1.5);
+  --text-5xl: calc(3rem * 1.5);
+  --text-6xl: calc(3.75rem * 1.5);
+}
+html[data-accessibility-font-size="150"] [data-slot="sheet-content"] {
+  --spacing: 0.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+}
+html[data-accessibility-font-size="175"] body {
+  --spacing: calc(0.25rem * 1.75);
+  --text-xs: calc(0.75rem * 1.75);
+  --text-sm: calc(0.875rem * 1.75);
+  --text-base: calc(1rem * 1.75);
+  --text-lg: calc(1.125rem * 1.75);
+  --text-xl: calc(1.25rem * 1.75);
+  --text-2xl: calc(1.5rem * 1.75);
+  --text-3xl: calc(1.875rem * 1.75);
+  --text-4xl: calc(2.25rem * 1.75);
+  --text-5xl: calc(3rem * 1.75);
+  --text-6xl: calc(3.75rem * 1.75);
+}
+html[data-accessibility-font-size="175"] [data-slot="sheet-content"] {
+  --spacing: 0.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+}
+html[data-accessibility-font-size="200"] body {
+  --spacing: calc(0.25rem * 2);
+  --text-xs: calc(0.75rem * 2);
+  --text-sm: calc(0.875rem * 2);
+  --text-base: calc(1rem * 2);
+  --text-lg: calc(1.125rem * 2);
+  --text-xl: calc(1.25rem * 2);
+  --text-2xl: calc(1.5rem * 2);
+  --text-3xl: calc(1.875rem * 2);
+  --text-4xl: calc(2.25rem * 2);
+  --text-5xl: calc(3rem * 2);
+  --text-6xl: calc(3.75rem * 2);
+}
+html[data-accessibility-font-size="200"] [data-slot="sheet-content"] {
+  --spacing: 0.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+}
+
+html[data-accessibility-contrast="true"] a,
+html[data-accessibility-contrast="true"] a * {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] button,
+html[data-accessibility-contrast="true"] button * {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] input,
+html[data-accessibility-contrast="true"] select,
+html[data-accessibility-contrast="true"] textarea {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] img {
+  outline: 2px solid var(--access-contrast-color) !important;
+  outline-offset: 2px;
+}
+html[data-accessibility-contrast="true"] nav,
+html[data-accessibility-contrast="true"] header,
+html[data-accessibility-contrast="true"] footer {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] main,
+html[data-accessibility-contrast="true"] section,
+html[data-accessibility-contrast="true"] article {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] [role="dialog"],
+html[data-accessibility-contrast="true"] [data-slot="sheet-content"] {
+  outline: 2px solid var(--access-contrast-color) !important;
+  outline-offset: 2px;
+}
+html[data-accessibility-contrast="true"] table,
+html[data-accessibility-contrast="true"] th,
+html[data-accessibility-contrast="true"] td {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] aside {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] figure {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] fieldset,
+html[data-accessibility-contrast="true"] form {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] h1,
+html[data-accessibility-contrast="true"] h2,
+html[data-accessibility-contrast="true"] h3,
+html[data-accessibility-contrast="true"] h4,
+html[data-accessibility-contrast="true"] h5,
+html[data-accessibility-contrast="true"] h6 {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+html[data-accessibility-contrast="true"] ul,
+html[data-accessibility-contrast="true"] ol,
+html[data-accessibility-contrast="true"] li {
+  outline: 1px solid var(--access-contrast-color) !important;
+  outline-offset: 1px;
+}
+
+html[data-accessibility-contrast="true"] div:not([data-slot]),
+html[data-accessibility-contrast="true"] p,
+html[data-accessibility-contrast="true"] blockquote,
+html[data-accessibility-contrast="true"] hr {
+  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+}
+
+html[data-accessibility-links="true"] a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--color-access-1);
+  background-color: color-mix(in srgb, var(--color-access-1) 10%, transparent);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+html[data-accessibility-links="true"] a:hover {
+  background-color: color-mix(in srgb, var(--color-access-1) 20%, transparent);
+}
+
+html[data-accessibility-grayscale="true"] img,
+html[data-accessibility-grayscale="true"] video {
+  filter: grayscale(100%) !important;
+}
+
+
