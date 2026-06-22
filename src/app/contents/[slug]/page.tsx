@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ export default function ContentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { locale } = useLocale();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const autoSelectedRef = useRef(false);
 
   const { data: parentData, isLoading: parentLoading } = useQuery({
     queryKey: [QueryKeys.CONTENTDETAIL, slug, locale],
@@ -26,6 +27,13 @@ export default function ContentDetailPage() {
     queryFn: () => getChildContentDetails(selectedChildId!, locale),
     enabled: !!selectedChildId,
   });
+
+  useEffect(() => {
+    if (parentData && !autoSelectedRef.current && !parentData.data.htmlContent && parentData.data.children.length > 0) {
+      autoSelectedRef.current = true;
+      setSelectedChildId(parentData.data.children[0].id);
+    }
+  }, [parentData]);
 
   if (parentLoading) {
     return (
