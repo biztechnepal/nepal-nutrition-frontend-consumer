@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { Landmark } from "./useKeyboardNav";
 
@@ -17,6 +17,7 @@ interface KeyboardNavOverlayProps {
 
 export default function KeyboardNavOverlay({ landmarks }: KeyboardNavOverlayProps) {
   const [positions, setPositions] = useState<BadgePosition[]>([]);
+  const rafRef = useRef(0);
 
   const updatePositions = useCallback(() => {
     const next: BadgePosition[] = [];
@@ -33,15 +34,21 @@ export default function KeyboardNavOverlay({ landmarks }: KeyboardNavOverlayProp
     setPositions(next);
   }, [landmarks]);
 
+  const handleViewportChange = useCallback(() => {
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(updatePositions);
+  }, [updatePositions]);
+
   useEffect(() => {
     updatePositions();
-    window.addEventListener("scroll", updatePositions, { passive: true });
-    window.addEventListener("resize", updatePositions);
+    window.addEventListener("scroll", handleViewportChange, { passive: true });
+    window.addEventListener("resize", handleViewportChange);
     return () => {
-      window.removeEventListener("scroll", updatePositions);
-      window.removeEventListener("resize", updatePositions);
+      window.removeEventListener("scroll", handleViewportChange);
+      window.removeEventListener("resize", handleViewportChange);
+      cancelAnimationFrame(rafRef.current);
     };
-  }, [updatePositions]);
+  }, [handleViewportChange]);
 
   if (positions.length === 0) return null;
 

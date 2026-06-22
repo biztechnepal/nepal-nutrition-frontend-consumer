@@ -128,11 +128,15 @@ export function useKeyboardNav(
   const [focusedLandmark, setFocusedLandmark] = useState<FocusedLandmark>(null);
   const [tooltipMinimized, setTooltipMin] = useState(getTooltipMinimized);
   const activeLandmarkIndex = useRef<number>(-1);
+  const scanTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const scan = useCallback(() => {
     const found = scanLandmarks();
+    const prev = landmarksRef.current;
+    const changed = prev.length !== found.length ||
+      prev.some((l, i) => l.element !== found[i].element);
     landmarksRef.current = found;
-    setLandmarks(found);
+    if (changed) setLandmarks(found);
   }, []);
 
   useEffect(() => {
@@ -147,24 +151,22 @@ export function useKeyboardNav(
   useEffect(() => {
     if (!enabled) return;
 
-    let scrollTimer: ReturnType<typeof setTimeout>;
-    function onScroll() {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(scan, 300);
+    function scheduleScan() {
+      clearTimeout(scanTimer.current);
+      scanTimer.current = setTimeout(scan, 300);
     }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", scan);
 
-    const observer = new MutationObserver(() => {
-      scan();
-    });
+    window.addEventListener("scroll", scheduleScan, { passive: true });
+    window.addEventListener("resize", scheduleScan);
+
+    const observer = new MutationObserver(() => scheduleScan());
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", scan);
+      window.removeEventListener("scroll", scheduleScan);
+      window.removeEventListener("resize", scheduleScan);
       observer.disconnect();
-      clearTimeout(scrollTimer);
+      clearTimeout(scanTimer.current);
     };
   }, [enabled, scan]);
 

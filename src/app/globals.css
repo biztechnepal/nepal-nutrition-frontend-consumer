@@ -383,4 +383,13 @@ html[data-accessibility-keyboard-nav="true"] [role="status"] {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+body[data-scroll-locked] {
+  padding-right: 0 !important;
+  margin-left: var(--removed-body-scroll-bar-size, 0px) !important;
+}
+
 
