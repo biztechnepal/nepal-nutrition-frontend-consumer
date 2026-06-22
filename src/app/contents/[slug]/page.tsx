@@ -69,17 +69,19 @@ export default function ContentDetailPage() {
         <aside className="w-full lg:w-60 shrink-0">
         <ScrollArea className="h-[calc(100vh-200px)]">
           <nav className="space-y-1">
-            <button
-              onClick={() => setSelectedChildId(null)}
-              className={cn(
-                "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                isShowingParent
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-foreground"
-              )}
-            >
-              {parent.title}
-            </button>
+            {parent.htmlContent ? (
+              <button
+                onClick={() => setSelectedChildId(null)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                  isShowingParent
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted text-foreground"
+                )}
+              >
+                {parent.title}
+              </button>
+            ) : null}
             {parent.children.map((child) => (
               <button
                 key={child.id}
