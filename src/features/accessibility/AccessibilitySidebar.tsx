@@ -102,6 +102,7 @@ export default function AccessibilitySidebar() {
     toggleHighContrast,
     toggleLinkHighlight,
     toggleImageGrayscale,
+    toggleKeyboardNavigation,
     resetSettings,
   } = useAccessibility();
 
@@ -109,7 +110,8 @@ export default function AccessibilitySidebar() {
     settings.fontSize === 100 &&
     !settings.highContrast &&
     !settings.linkHighlight &&
-    !settings.imageGrayscale;
+    !settings.imageGrayscale &&
+    !settings.keyboardNavigation;
 
   return (
     <SheetContent side="right" className="w-96 sm:max-w-md" hideClose={settings.highContrast}>
@@ -141,6 +143,11 @@ export default function AccessibilitySidebar() {
             label="Image Grayscale"
             checked={settings.imageGrayscale}
             onToggle={toggleImageGrayscale}
+          />
+          <ToggleRow
+            label="Keyboard Navigation"
+            checked={settings.keyboardNavigation}
+            onToggle={toggleKeyboardNavigation}
           />
         </div>
 

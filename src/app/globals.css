@@ -369,4 +369,18 @@ html[data-accessibility-grayscale="true"] video {
   filter: grayscale(100%) !important;
 }
 
+html[data-accessibility-keyboard-nav="true"] *:focus-visible {
+  outline: 3px dashed var(--access-contrast-color) !important;
+  outline-offset: 3px !important;
+}
+
+html[data-accessibility-keyboard-nav="true"] [role="status"] {
+  animation: kb-fade-in 0.2s ease-out;
+}
+
+@keyframes kb-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 

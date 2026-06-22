@@ -4,6 +4,7 @@ export interface AccessibilitySettings {
   contrastColor: string;
   linkHighlight: boolean;
   imageGrayscale: boolean;
+  keyboardNavigation: boolean;
 }
 
 export const FONT_SIZE_STEPS = [75, 100, 125, 150, 175, 200] as const;
@@ -30,4 +31,5 @@ export const DEFAULT_SETTINGS: AccessibilitySettings = {
   contrastColor: "#e53935",
   linkHighlight: false,
   imageGrayscale: false,
+  keyboardNavigation: false,
 };

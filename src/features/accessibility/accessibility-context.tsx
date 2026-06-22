@@ -13,6 +13,7 @@ function applyDataAttributes(settings: AccessibilitySettings) {
   root.style.setProperty("--access-contrast-color", settings.contrastColor);
   root.setAttribute("data-accessibility-links", String(settings.linkHighlight));
   root.setAttribute("data-accessibility-grayscale", String(settings.imageGrayscale));
+  root.setAttribute("data-accessibility-keyboard-nav", String(settings.keyboardNavigation));
 }
 
 function initializeSettings(): AccessibilitySettings {
@@ -36,13 +37,17 @@ interface AccessibilityContextValue {
   setContrastColor: (color: string) => void;
   toggleLinkHighlight: () => void;
   toggleImageGrayscale: () => void;
+  toggleKeyboardNavigation: () => void;
   resetSettings: () => void;
+  isAccessibilityOpen: boolean;
+  setAccessibilityOpen: (open: boolean) => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
 
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<AccessibilitySettings>(initializeSettings);
+  const [isAccessibilityOpen, setAccessibilityOpen] = useState(false);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -99,6 +104,10 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     setSettings((prev) => ({ ...prev, imageGrayscale: !prev.imageGrayscale }));
   }, []);
 
+  const toggleKeyboardNavigation = useCallback(() => {
+    setSettings((prev) => ({ ...prev, keyboardNavigation: !prev.keyboardNavigation }));
+  }, []);
+
   const resetSettings = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
   }, []);
@@ -114,7 +123,10 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
         setContrastColor,
         toggleLinkHighlight,
         toggleImageGrayscale,
+        toggleKeyboardNavigation,
         resetSettings,
+        isAccessibilityOpen,
+        setAccessibilityOpen,
       }}
     >
       {children}
