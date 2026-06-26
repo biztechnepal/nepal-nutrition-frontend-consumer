@@ -65,8 +65,8 @@ export default function ContentDetailPage() {
     : null;
 
   return (
-      <div className="py-8 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <aside className="w-full lg:w-60 shrink-0">
+    <div className="py-8 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
+      <aside className="w-full lg:w-60 shrink-0">
         <ScrollArea className="h-[calc(100vh-200px)]">
           <nav className="space-y-1">
             {parent.htmlContent ? (
@@ -107,17 +107,8 @@ export default function ContentDetailPage() {
           </div>
         ) : rightContent ? (
           <article>
-            <header className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground">
-                {rightContent.title}
-              </h1>
-              <div className="mt-2 flex gap-4 text-sm text-muted-foreground">
-                <span>Published: {formattedCreatedDate}</span>
-                <span>Updated: {formattedUpdatedDate}</span>
-              </div>
-            </header>
             <div
-              className="prose prose-gray prose-sm md:prose-base lg:prose-lg max-w-none"
+              className="prose prose-gray prose-sm md:prose-base max-w-none"
               dangerouslySetInnerHTML={{ __html: rightContent.htmlContent }}
             />
           </article>
