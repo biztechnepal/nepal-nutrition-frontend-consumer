@@ -23,7 +23,7 @@ import { LocaleSwitcher } from "@/features/i18n/components/LocaleSwitcher";
 const YEARS = ["2026", "2025", "2024", "2023", "2022"];
 const PROVINCES = Object.keys(PROVINCE_COLORS);
 
-const Header = () => {
+const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -75,105 +75,109 @@ const Header = () => {
         {/* Filter Dropdowns + Mobile Menu */}
         <div className="flex items-center gap-2">
           {/* Year Filter */}
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
-              >
-                <CalendarDays size={14} className="text-primary" />
-                <span className="font-bold text-secondary">{currentYear}</span>
-                <ChevronDown size={14} className="text-muted-foreground ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                {t("selectYear")}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {YEARS.map((year) => (
-                <DropdownMenuItem
-                  key={year}
-                  onClick={() => updateQueryParams("year", year)}
-                  className="flex items-center justify-between"
+          {showFilter && (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
                 >
-                  <span
-                    className={
-                      currentYear === year ? "font-bold text-primary" : ""
-                    }
+                  <CalendarDays size={14} className="text-primary" />
+                  <span className="font-bold text-secondary">{currentYear}</span>
+                  <ChevronDown size={14} className="text-muted-foreground ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
+                  {t("selectYear")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {YEARS.map((year) => (
+                  <DropdownMenuItem
+                    key={year}
+                    onClick={() => updateQueryParams("year", year)}
+                    className="flex items-center justify-between"
                   >
-                    {year}
-                  </span>
-                  {currentYear === year && (
-                    <Check size={14} className="text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    <span
+                      className={
+                        currentYear === year ? "font-bold text-primary" : ""
+                      }
+                    >
+                      {year}
+                    </span>
+                    {currentYear === year && (
+                      <Check size={14} className="text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Province Filter */}
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
-              >
-                <MapPin
-                  size={14}
-                  className={
-                    currentProvince ? "text-primary" : "text-muted-foreground"
-                  }
-                />
-                <span className="font-bold text-secondary">
-                  {currentProvince ? currentProvince : t("province")}
-                </span>
-                <ChevronDown size={14} className="text-muted-foreground ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-56 max-h-[300px] overflow-y-auto"
-            >
-              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                {t("selectProvince")}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => updateQueryParams("province", null)}
-                className="flex items-center justify-between"
-              >
-                <span
-                  className={!currentProvince ? "font-bold text-primary" : ""}
+          {showFilter && (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
                 >
-                  {t("allProvinces")}
-                </span>
-                {!currentProvince && (
-                  <Check size={14} className="text-primary" />
-                )}
-              </DropdownMenuItem>
-              {PROVINCES.map((prov) => (
+                  <MapPin
+                    size={14}
+                    className={
+                      currentProvince ? "text-primary" : "text-muted-foreground"
+                    }
+                  />
+                  <span className="font-bold text-secondary">
+                    {currentProvince ? currentProvince : t("province")}
+                  </span>
+                  <ChevronDown size={14} className="text-muted-foreground ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 max-h-[300px] overflow-y-auto"
+              >
+                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
+                  {t("selectProvince")}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  key={prov}
-                  onClick={() => updateQueryParams("province", prov)}
+                  onClick={() => updateQueryParams("province", null)}
                   className="flex items-center justify-between"
                 >
                   <span
-                    className={
-                      currentProvince === prov ? "font-bold text-primary" : ""
-                    }
+                    className={!currentProvince ? "font-bold text-primary" : ""}
                   >
-                    {prov}
+                    {t("allProvinces")}
                   </span>
-                  {currentProvince === prov && (
+                  {!currentProvince && (
                     <Check size={14} className="text-primary" />
                   )}
                 </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {PROVINCES.map((prov) => (
+                  <DropdownMenuItem
+                    key={prov}
+                    onClick={() => updateQueryParams("province", prov)}
+                    className="flex items-center justify-between"
+                  >
+                    <span
+                      className={
+                        currentProvince === prov ? "font-bold text-primary" : ""
+                      }
+                    >
+                      {prov}
+                    </span>
+                    {currentProvince === prov && (
+                      <Check size={14} className="text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <LocaleSwitcher />
 

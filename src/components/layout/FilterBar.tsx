@@ -32,7 +32,6 @@ export const NavigationBar = () => {
   const navLinks = [
     { name: t("home"), href: "/" },
     { name: t("nutritionIndicators"), href: "/nutrition-indicators" },
-    { name: t("contactUs"), href: "/contact" },
   ];
 
   return (
@@ -88,6 +87,25 @@ export const NavigationBar = () => {
                 </NavigationMenuLink>
               </NavigationMenuItem>
             ))}
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link
+                  href="/contact"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent px-4 transition-all relative overflow-hidden whitespace-nowrap",
+                    pathname.startsWith("/contact")
+                      ? "text-primary font-bold bg-primary/5"
+                      : "hover:bg-primary/5 hover:text-primary text-muted-foreground",
+                  )}
+                >
+                  {t("contactUs")}
+                  {pathname.startsWith("/contact") && (
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                  )}
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </div>

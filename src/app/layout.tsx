@@ -2,9 +2,6 @@ import React from "react";
 import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import MainNavigation from "@/components/layout/MainNavigation";
-import ContentContainer from "@/components/layout/ContentContainer";
-import Footer from "@/components/layout/Footer";
 import Providers from "@/components/providers/Providers";
 import AccessibilityFab from "@/features/accessibility/AccessibilityFab";
 
@@ -34,9 +31,7 @@ export default function RootLayout({
         className={`${outfit.variable} ${geistMono.variable} antialiased min-h-screen bg-background pt-28 flex flex-col`}
       >
         <Providers>
-          <MainNavigation />
-          <ContentContainer>{children}</ContentContainer>
-          <Footer />
+          {children}
           <AccessibilityFab />
         </Providers>
       </body>
