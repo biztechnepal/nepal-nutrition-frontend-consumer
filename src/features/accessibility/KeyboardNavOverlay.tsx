@@ -40,15 +40,16 @@ export default function KeyboardNavOverlay({ landmarks }: KeyboardNavOverlayProp
   }, [updatePositions]);
 
   useEffect(() => {
-    updatePositions();
+    const frameId = window.requestAnimationFrame(updatePositions);
     window.addEventListener("scroll", handleViewportChange, { passive: true });
     window.addEventListener("resize", handleViewportChange);
     return () => {
       window.removeEventListener("scroll", handleViewportChange);
       window.removeEventListener("resize", handleViewportChange);
+      cancelAnimationFrame(frameId);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [handleViewportChange]);
+  }, [handleViewportChange, updatePositions]);
 
   if (positions.length === 0) return null;
 

@@ -74,6 +74,18 @@ const MapPaths = React.memo(
       name: string | null,
     ) => void;
   }) => {
+    const fitFeature = useMemo(
+      () => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "GeometryCollection" as const,
+          geometries: features.map((feature) => feature.geometry),
+        },
+        properties: {},
+      }),
+      [features],
+    );
+
     return (
       <CustomProjection
         data={features}
@@ -83,13 +95,7 @@ const MapPaths = React.memo(
             .center([0, 28.3949])
             .parallels([26, 30])
         }
-        fitSize={[
-          [width * 0.9, height * 0.9],
-          {
-            type: "FeatureCollection",
-            features,
-          } as any,
-        ]}
+        fitSize={[[width * 0.9, height * 0.9], fitFeature]}
       >
         {({ features: projectedFeatures }) => (
           <g

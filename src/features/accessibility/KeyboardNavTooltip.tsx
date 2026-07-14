@@ -18,7 +18,12 @@ function isMac(): boolean {
 
 export default function KeyboardNavTooltip({ landmarks, minimized, onToggleMinimized }: KeyboardNavTooltipProps) {
   const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => { setIsMounted(true); }, []);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => setIsMounted(true));
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
+
   if (!isMounted) return null;
 
   const mac = isMac();

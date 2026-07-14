@@ -32,6 +32,7 @@ export const NavigationBar = () => {
   const navLinks = [
     { name: t("home"), href: "/" },
     { name: t("nutritionIndicators"), href: "/nutrition-indicators" },
+    { name: t("digitalLibrary"), href: "/gallery" },
   ];
 
   return (

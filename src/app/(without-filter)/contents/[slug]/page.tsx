@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
 import { QueryKeys } from "@/constants/query-keys";
 import { getContentDetails, getChildContentDetails } from "@/services/content.service";
@@ -14,7 +13,6 @@ export default function ContentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { locale } = useLocale();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const autoSelectedRef = useRef(false);
 
   const { data: parentData, isLoading: parentLoading } = useQuery({
     queryKey: [QueryKeys.CONTENTDETAIL, slug, locale],
@@ -22,18 +20,17 @@ export default function ContentDetailPage() {
     enabled: !!slug,
   });
 
-  const { data: childDetailData, isLoading: childDetailLoading } = useQuery({
-    queryKey: [QueryKeys.CHILDCONTENTDETAIL, selectedChildId, locale],
-    queryFn: () => getChildContentDetails(selectedChildId!, locale),
-    enabled: !!selectedChildId,
-  });
+  const defaultChildId =
+    parentData?.data && !parentData.data.htmlContent && parentData.data.children.length > 0
+      ? parentData.data.children[0].id
+      : null;
+  const activeChildId = selectedChildId ?? defaultChildId;
 
-  useEffect(() => {
-    if (parentData && !autoSelectedRef.current && !parentData.data.htmlContent && parentData.data.children.length > 0) {
-      autoSelectedRef.current = true;
-      setSelectedChildId(parentData.data.children[0].id);
-    }
-  }, [parentData]);
+  const { data: childDetailData, isLoading: childDetailLoading } = useQuery({
+    queryKey: [QueryKeys.CHILDCONTENTDETAIL, activeChildId, locale],
+    queryFn: () => getChildContentDetails(activeChildId!, locale),
+    enabled: !!activeChildId,
+  });
 
   if (parentLoading) {
     return (
@@ -52,17 +49,9 @@ export default function ContentDetailPage() {
   }
 
   const parent = parentData.data;
-  const isShowingParent = selectedChildId === null;
+  const isShowingParent = selectedChildId === null && !!parent.htmlContent;
   const rightContent = isShowingParent ? parent : childDetailData?.data;
   const isRightLoading = !isShowingParent && childDetailLoading;
-
-  const formattedCreatedDate = rightContent
-    ? dayjs(rightContent.createdAt).format("MMMM D, YYYY")
-    : null;
-
-  const formattedUpdatedDate = rightContent
-    ? dayjs(rightContent.updatedAt).format("MMMM D, YYYY")
-    : null;
 
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
@@ -88,7 +77,7 @@ export default function ContentDetailPage() {
                 onClick={() => setSelectedChildId(child.id)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                  selectedChildId === child.id
+                  activeChildId === child.id
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-muted text-foreground"
                 )}

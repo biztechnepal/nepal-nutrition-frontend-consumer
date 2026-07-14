@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useTransition } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
@@ -27,7 +27,6 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
   const { t } = useTranslation("header");
 
   const currentYear = searchParams.get("year") || "2026";
@@ -40,14 +39,13 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
     } else {
       params.delete(key);
     }
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`);
-    });
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const navLinks = [
     { name: t("home"), href: "/" },
     { name: t("nutritionIndicators"), href: "/nutrition-indicators" },
+    { name: t("digitalLibrary"), href: "/gallery" },
     { name: t("contactUs"), href: "/contact" },
   ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Accessibility, Command } from "lucide-react";
 
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
@@ -15,11 +15,7 @@ function isMac(): boolean {
 
 export default function AccessibilityFab() {
   const { isAccessibilityOpen, setAccessibilityOpen } = useAccessibility();
-  const [shortcutLabel, setShortcutLabel] = useState("Alt+A");
-
-  useEffect(() => {
-    setShortcutLabel(isMac() ? "⌘A" : "Alt+A");
-  }, []);
+  const [shortcutLabel] = useState(() => (isMac() ? "⌘A" : "Alt+A"));
 
   return (
     <Sheet open={isAccessibilityOpen} onOpenChange={setAccessibilityOpen}>

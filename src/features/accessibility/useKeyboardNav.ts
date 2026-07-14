@@ -141,11 +141,15 @@ export function useKeyboardNav(
 
   useEffect(() => {
     if (!enabled) {
-      setFocusedLandmark(null);
+      const timeoutId = window.setTimeout(() => {
+        setFocusedLandmark(null);
+      }, 0);
       activeLandmarkIndex.current = -1;
-      return;
+      return () => window.clearTimeout(timeoutId);
     }
-    scan();
+
+    const frameId = window.requestAnimationFrame(scan);
+    return () => window.cancelAnimationFrame(frameId);
   }, [enabled, scan]);
 
   useEffect(() => {

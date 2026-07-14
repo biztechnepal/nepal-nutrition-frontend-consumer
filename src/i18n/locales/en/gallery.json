@@ -1,0 +1,15 @@
+{
+  "title": "Digital Library",
+  "subtitle": "Photo albums and galleries",
+  "loading": "Loading...",
+  "loadMore": "Load more",
+  "noAlbums": "No albums available yet.",
+  "noPhotos": "No photos in this album yet.",
+  "albumNotFound": "Album not found.",
+  "backToGallery": "Back to gallery",
+  "photoCount": "{{count}} photos",
+  "photoCount_one": "{{count}} photo",
+  "close": "Close",
+  "previous": "Previous",
+  "next": "Next"
+}
