@@ -2,29 +2,42 @@
 
 import { IndicatorCard } from "./components/IndicatorCard";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import {
-  Info,
-  Baby,
-  Accessibility,
-  Scale,
-  User2,
-  Activity,
-  Droplets,
-} from "lucide-react";
+import { Info } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import NepalMap from "@/components/d3/NepalMap";
 import { ProvinceTable } from "./components/ProvinceTable";
-import { NUTRITION_DATA } from "@/data/nutritionData";
+import { OfficialCard } from "./components/OfficialCard";
+import { PORTAL_OFFICIALS } from "./officials";
+import { QueryKeys } from "@/constants/query-keys";
+import { getImpactIndicators } from "@/services/dashboard.service";
+import { useLocale } from "@/features/i18n/hooks/useLocale";
+import {
+  IMPACT_INDICATOR_ICONS,
+  formatTargetLabel,
+  getIndicatorStatus,
+} from "./impact-indicators";
 
 export const DashboardView = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { locale } = useLocale();
 
   const selectedProvince = searchParams.get("province");
-  const data = selectedProvince
-    ? NUTRITION_DATA[selectedProvince]
-    : NUTRITION_DATA.National;
+
+  const {
+    data: impactData,
+    isPending: isLoadingIndicators,
+    isError: hasIndicatorError,
+  } = useQuery({
+    queryKey: [QueryKeys.IMPACTINDICATORS, locale],
+    queryFn: () => getImpactIndicators(locale),
+  });
+
+  const indicators = impactData?.data?.indicators ?? [];
+  const endFiscalYear = impactData?.data?.endFiscalYear;
+  const fiscalYear = impactData?.data?.fiscalYear;
 
   const handleProvinceClick = (province: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -125,154 +138,114 @@ export const DashboardView = () => {
           </div>
         </div>
 
-        {/* 2. Key Performance Indicators Section */}
+        {/* 2. About Us */}
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2">
             <div className="w-1.5 h-6 bg-primary rounded-full" />
-            <h2 className="text-[15px] font-black text-secondary">
-              Impact Indicators Overview - {selectedProvince || "National"}
-            </h2>
+            <h2 className="text-[17px] font-black text-secondary">About Us</h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <IndicatorCard
-              title="Stunting"
-              subtitle="Children < 5y • SDG 2.2.1"
-              value={data.stunting.toString()}
-              target="15"
-              status={
-                data.stunting > 25
-                  ? "error"
-                  : data.stunting > 15
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Baby size={16} />}
-            />
-            <IndicatorCard
-              title="Wasting"
-              subtitle="Children < 5y • SDG 2.2.2"
-              value={data.wasting.toString()}
-              target="4"
-              status={
-                data.wasting > 7
-                  ? "error"
-                  : data.wasting > 4
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Accessibility size={16} />}
-            />
-            <IndicatorCard
-              title="Low Birth Weight"
-              subtitle="Newborn Health Indicator"
-              value={data.lowBirthWeight.toString()}
-              target="8"
-              status={
-                data.lowBirthWeight > 12
-                  ? "error"
-                  : data.lowBirthWeight > 8
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Baby size={16} />}
-            />
-            <IndicatorCard
-              title="Underweight"
-              subtitle="Children < 5y • SDG 2.2.2.1"
-              value={data.underweight.toString()}
-              target="10"
-              status={
-                data.underweight > 18
-                  ? "error"
-                  : data.underweight > 10
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Scale size={16} />}
-            />
-            <IndicatorCard
-              title="Child Overweight"
-              subtitle="Children Under 5 years"
-              value={data.childOverweight.toString()}
-              target="5"
-              status={data.childOverweight > 5 ? "error" : "success"}
-              icon={<Scale size={16} />}
-            />
-            <IndicatorCard
-              title="Adol. Overweight"
-              subtitle="Adolescents (10-19y)"
-              value={data.adolOverweight.toString()}
-              target="12.5"
-              status={
-                data.adolOverweight > 15
-                  ? "error"
-                  : data.adolOverweight > 12.5
-                    ? "warning"
-                    : "success"
-              }
-              icon={<User2 size={16} />}
-            />
-            <IndicatorCard
-              title="Adult Overweight"
-              subtitle="Age group 15-69y"
-              value={data.adultOverweight.toString()}
-              target="18"
-              status={
-                data.adultOverweight > 20
-                  ? "error"
-                  : data.adultOverweight > 18
-                    ? "warning"
-                    : "success"
-              }
-              icon={<User2 size={16} />}
-            />
-            <IndicatorCard
-              title="Women Low BMI"
-              subtitle="Reproductive Age • < 18.5"
-              value={data.womenLowBMI.toString()}
-              target="12"
-              status={
-                data.womenLowBMI > 18
-                  ? "error"
-                  : data.womenLowBMI > 12
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Activity size={16} />}
-            />
-            <IndicatorCard
-              title="Child Anaemia"
-              subtitle="Children < 5y • SDG 2.2.5"
-              value={data.childAnaemia.toString()}
-              target="20"
-              status={
-                data.childAnaemia > 40
-                  ? "error"
-                  : data.childAnaemia > 20
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Droplets size={16} />}
-            />
-            <IndicatorCard
-              title="Women Anaemia"
-              subtitle="Reproductive Age • SDG 2.2.4"
-              value={data.womenAnaemia.toString()}
-              target="18"
-              status={
-                data.womenAnaemia > 30
-                  ? "error"
-                  : data.womenAnaemia > 18
-                    ? "warning"
-                    : "success"
-              }
-              icon={<Droplets size={16} />}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <Card className="lg:col-span-8 bg-white border-border/40 shadow-xl rounded-2xl border-t-2 border-t-primary">
+              <CardContent className="p-5">
+                <p className="text-[14px] leading-7 text-foreground/70 font-medium text-justify">
+                  There is an unprecedented momentum at present to improve
+                  nutrition and food security situation in Nepal in tandem with
+                  the strong global momentum. Nutrition and food security have
+                  been identified as important agenda of national development
+                  and have been accorded a top priority by Government of Nepal.
+                  The strong high-level commitment from the government is
+                  matched by an equally strong support from the external
+                  development partners. As a result, a multitude of activities
+                  are ongoing in this field in the country. A powerful rationale
+                  therefore exists for an online and open access
+                  “One-Stop-Shop” for all the resources, information and updates
+                  related to nutrition and food security in Nepal. Hence, this
+                  Nepal Nutrition and Food Security Portal has been established.
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="lg:col-span-4 flex flex-col gap-4">
+              {PORTAL_OFFICIALS.map((official) => (
+                <OfficialCard key={official.email} {...official} />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* 3. System Footer Area */}
+        {/* 3. Key Performance Indicators Section */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 bg-primary rounded-full" />
+            <h2 className="text-[17px] font-black text-secondary">
+              Impact Indicators Overview - National
+            </h2>
+            {fiscalYear && (
+              <span className="text-[12px] font-bold text-muted-foreground/70">
+                FY {fiscalYear.year}
+                {fiscalYear.dateInAd ? ` (${fiscalYear.dateInAd})` : ""}
+              </span>
+            )}
+          </div>
+
+          {/* The map and province table still drive the rest of the page, but no
+              province-level values have been recorded against these indicators.
+              Saying so beats captioning national figures with a province name. */}
+          {selectedProvince && (
+            <p className="text-[13px] font-bold text-muted-foreground/70 -mt-2">
+              Province figures are not published for the impact indicators yet —
+              showing national values while {selectedProvince} is selected.
+            </p>
+          )}
+
+          {hasIndicatorError ? (
+            <p className="text-[13px] font-bold text-primary">
+              Impact indicators could not be loaded. Please try again later.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {isLoadingIndicators
+                ? Array.from({ length: 10 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="min-h-48 rounded-xl bg-white/60 border border-border/20 animate-pulse"
+                    />
+                  ))
+                : indicators.map((indicator) => {
+                    const Icon = IMPACT_INDICATOR_ICONS[indicator.code];
+
+                    // Some indicators carry prose in place of a figure — the
+                    // plan's "baseline and target to be set" placeholder. That
+                    // reads as a sentence, not a measurement, so the card shows
+                    // it as absent rather than setting it in the value slot.
+                    const hasFigure = indicator.current?.value != null;
+
+                    return (
+                      <IndicatorCard
+                        key={indicator.configId}
+                        title={indicator.name}
+                        value={hasFigure ? indicator.current!.label : "—"}
+                        unit={hasFigure ? (indicator.unit ?? "") : ""}
+                        target={formatTargetLabel(
+                          indicator.endTarget,
+                          indicator.unit,
+                        )}
+                        targetLabel={
+                          endFiscalYear?.dateInAd
+                            ? `${endFiscalYear.dateInAd} Target`
+                            : "End of Plan Target"
+                        }
+                        status={getIndicatorStatus(indicator)}
+                        icon={Icon ? <Icon size={16} /> : undefined}
+                      />
+                    );
+                  })}
+            </div>
+          )}
+        </div>
+
+        {/* 4. System Footer Area */}
         <div className="w-full flex flex-col items-center gap-4 pt-12 pb-8 border-t border-dashed border-border/60">
           <div className="flex gap-6 items-center">
             <div className="w-2.5 h-2.5 rounded-full bg-primary/30 animate-pulse" />
