@@ -1,28 +1,30 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
-import * as topojson from "topojson-client";
-import { CustomProjection } from "@visx/geo";
-import { geoAlbers } from "d3-geo";
+import React, { useCallback, useMemo } from "react";
+import { geoAlbers, geoPath } from "d3-geo";
 import { ParentSize } from "@visx/responsive";
 import { localPoint } from "@visx/event";
-import { RotateCcw } from "lucide-react";
+import { ChevronRight, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Topology, GeometryCollection } from "topojson-specification";
-import { Geometry, FeatureCollection, Feature } from "geojson";
+import {
+  type AdminFeature,
+  type AdminLevel,
+  type AdminSelection,
+  NEPAL,
+  PROVINCES,
+  districtsOf,
+  municipalitiesOf,
+} from "@/lib/geo/admin";
+import { provinceColor, shadeFor } from "@/constants/provinces";
+import type { SelectionPatch } from "@/lib/geo/selection-params";
 
-// Import your TopoJSON file
-import nepalTopologyImport from "@/data/province.topo.json";
-import { PROVINCE_COLORS, getDisplayName } from "@/constants/provinces";
+export type { SelectionPatch };
 
-const nepalTopology = nepalTopologyImport as unknown as Topology;
-
-interface MapProperties {
-  PR_NAME?: string;
-  name?: string;
-  Province?: string;
-  PROVINCE?: number;
-  OBJECTID?: number;
+interface NepalMapProps {
+  selection: AdminSelection;
+  onSelect: (patch: SelectionPatch) => void;
+  onReset: () => void;
+  onHover?: (name: string | null) => void;
 }
 
 interface Indicator {
@@ -38,12 +40,6 @@ const dummyIndicators: Indicator[] = [
   { name: "Severe Acute Malnutrition", ranking: "No Ranking" },
 ];
 
-interface NepalMapProps {
-  selectedProvince?: string | null;
-  onReset?: () => void;
-  onHover?: (province: string | null) => void;
-}
-
 const getRankingColor = (ranking: string) => {
   switch (ranking) {
     case "Off Track":
@@ -57,190 +53,181 @@ const getRankingColor = (ranking: string) => {
   }
 };
 
-const MapPaths = React.memo(
-  ({
-    features,
-    width,
-    height,
-    selectedProvince,
-    onHoverProvince,
-  }: {
-    features: Feature<Geometry, MapProperties>[];
-    width: number;
-    height: number;
-    selectedProvince?: string | null;
-    onHoverProvince: (
-      point: { x: number; y: number } | null,
-      name: string | null,
-    ) => void;
-  }) => {
-    const fitFeature = useMemo(
-      () => ({
-        type: "Feature" as const,
-        geometry: {
-          type: "GeometryCollection" as const,
-          geometries: features.map((feature) => feature.geometry),
-        },
-        properties: {},
-      }),
-      [features],
-    );
+const LEVEL_LABEL: Record<AdminLevel, string> = {
+  province: "Province",
+  district: "District",
+  municipality: "Local Level",
+};
 
-    return (
-      <CustomProjection
-        data={features}
-        projection={() =>
-          geoAlbers()
-            .rotate([-84.124, 0])
-            .center([0, 28.3949])
-            .parallels([26, 30])
-        }
-        fitSize={[[width * 0.9, height * 0.9], fitFeature]}
-      >
-        {({ features: projectedFeatures }) => (
-          <g
-            transform={`translate(${width * 0.05}, ${height * 0.05})`}
-            className="nepal-map-group"
-          >
-            <style>{`
-              .nepal-map-group .nepal-province {
-                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
-              }
-              .nepal-map-group .nepal-province:hover {
-                transform: scale(1.02);
-                filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.25));
-                stroke-width: 1.5px !important;
-                z-index: 50;
-              }
-            `}</style>
-            {projectedFeatures.map(({ feature, path }) => {
-              const provinceName =
-                feature.properties.PR_NAME || feature.properties.name || "";
-              const displayName = getDisplayName(provinceName);
-              const color = PROVINCE_COLORS[displayName] || "var(--primary)";
-              const isSelected = selectedProvince === displayName;
-              const isOtherSelected =
-                selectedProvince && selectedProvince !== displayName;
+interface HoverState {
+  x: number;
+  y: number;
+  feature: AdminFeature;
+  level: AdminLevel;
+}
 
-              return (
-                <path
-                  key={displayName}
-                  d={path || ""}
-                  fill={color}
-                  stroke={isSelected ? "#000000" : "#ffffff"}
-                  strokeWidth={isSelected ? 1.5 : 0.5}
-                  className="nepal-province outline-none cursor-pointer"
-                  style={{
-                    opacity: isOtherSelected ? 0.3 : 0.85,
-                    transformOrigin: "center",
-                    transformBox: "fill-box",
-                  }}
-                  onMouseEnter={(event) => {
-                    const point = localPoint(event);
-                    if (point) onHoverProvince(point, displayName);
-                  }}
-                  onMouseMove={(event) => {
-                    const point = localPoint(event);
-                    if (point) onHoverProvince(point, displayName);
-                  }}
-                  onMouseLeave={() => {
-                    onHoverProvince(null, null);
-                  }}
-                />
-              );
-            })}
-          </g>
-        )}
-      </CustomProjection>
-    );
-  },
-);
-
-MapPaths.displayName = "MapPaths";
+/** What the map is currently drawing: one level, one flat set of features. */
+interface View {
+  level: AdminLevel;
+  features: AdminFeature[];
+  color: (feature: AdminFeature, index: number, total: number) => string;
+}
 
 export default function NepalMap({
-  selectedProvince,
+  selection,
+  onSelect,
   onReset,
   onHover,
 }: NepalMapProps) {
-  const [tooltip, setTooltip] = React.useState<{
-    x: number;
-    y: number;
-    province: string;
-  } | null>(null);
+  const [hover, setHover] = React.useState<HoverState | null>(null);
 
-  const handleHoverProvince = useCallback(
-    (point: { x: number; y: number } | null, name: string | null) => {
-      if (point && name) {
-        setTooltip((prev) => {
-          if (
-            prev &&
-            prev.x === point.x &&
-            prev.y === point.y &&
-            prev.province === name
-          ) {
-            return prev;
-          }
-          return { x: point.x, y: point.y, province: name };
-        });
-      } else {
-        setTooltip(null);
-      }
-      if (onHover) onHover(name);
+  const { province, district, municipality, focus } = selection;
+
+  const handleHover = useCallback(
+    (next: HoverState | null) => {
+      setHover((prev) => {
+        if (!next) return null;
+        if (
+          prev &&
+          prev.x === next.x &&
+          prev.y === next.y &&
+          prev.feature === next.feature
+        ) {
+          return prev;
+        }
+        return next;
+      });
+      onHover?.(next?.feature.properties.name ?? null);
     },
     [onHover],
   );
 
-  const worldData = useMemo(() => {
-    const objectKey = Object.keys(nepalTopology.objects)[0];
-    const geometryCollection = nepalTopology.objects[
-      objectKey
-    ] as GeometryCollection<MapProperties>;
+  /**
+   * One level at a time. Selecting a unit replaces the map with that unit's
+   * children — the province's districts, the district's local levels — rather
+   * than drawing them over the wider country. Nothing outside the selection is
+   * rendered, so the card shows the chosen area and only the chosen area.
+   */
+  const view = useMemo<View>(() => {
+    const provinceHex = provinceColor(province?.properties.name);
+    const shaded = (_f: AdminFeature, index: number, total: number) =>
+      shadeFor(provinceHex, index, total);
 
-    const geo = topojson.feature(
-      nepalTopology,
-      geometryCollection,
-    ) as unknown as FeatureCollection<Geometry, MapProperties>;
-
-    const allFeatures = geo.features;
-
-    if (selectedProvince) {
-      const provinceMapping: Record<string, string> = {
-        Koshi: "Province No 1",
-        Madhesh: "Province No 2",
-        Bagmati: "Bagmati Pradesh",
-        Gandaki: "Gandaki Pradesh",
-        Lumbini: "Province No 5",
-        Karnali: "Karnali Pradesh",
-        Sudurpashchim: "Sudurpashchim Pradesh",
+    if (municipality) {
+      return {
+        level: "municipality",
+        features: [municipality],
+        color: () => provinceHex,
       };
-
-      const targetName = provinceMapping[selectedProvince] || selectedProvince;
-
-      return allFeatures.filter((f) => {
-        const featName = (
-          f.properties.PR_NAME ||
-          f.properties.name ||
-          ""
-        ).toLowerCase();
-        return (
-          featName.includes(targetName.toLowerCase()) ||
-          targetName.toLowerCase().includes(featName)
-        );
-      });
     }
 
-    return allFeatures;
-  }, [selectedProvince]);
+    if (district) {
+      return {
+        level: "municipality",
+        // Parks and reserves are included so the district is drawn whole; they
+        // are painted flat and are not selectable.
+        features: municipalitiesOf(district.properties.code),
+        color: (feature, index, total) =>
+          feature.properties.kind === "special"
+            ? "#d9d9d9"
+            : shaded(feature, index, total),
+      };
+    }
+
+    if (province) {
+      return {
+        level: "district",
+        features: districtsOf(province.properties.code),
+        color: shaded,
+      };
+    }
+
+    return {
+      level: "province",
+      features: PROVINCES,
+      color: (feature) => provinceColor(feature.properties.name),
+    };
+  }, [province, district, municipality]);
+
+  const handleClick = useCallback(
+    (level: AdminLevel, feature: AdminFeature) => {
+      const name = feature.properties.name;
+
+      // Only one level is on screen, and it is always the level *below* the
+      // current selection, so a click on it is always a step down — except at
+      // the deepest level, where the lone visible unit is the selection itself
+      // and clicking it steps back up.
+      if (level === "province") {
+        onSelect({ province: name });
+      } else if (level === "district") {
+        onSelect({ district: name });
+      } else if (feature.properties.kind !== "special") {
+        const isSelected =
+          municipality?.properties.code === feature.properties.code;
+        onSelect({ municipality: isSelected ? null : name });
+      }
+    },
+    [municipality, onSelect],
+  );
+
+  const crumbs: Array<{ label: string; patch: SelectionPatch | null }> = [
+    { label: "Nepal", patch: { province: null, district: null, municipality: null } },
+  ];
+  if (province) {
+    crumbs.push({
+      label: province.properties.name,
+      patch: { district: null, municipality: null },
+    });
+  }
+  if (district) {
+    crumbs.push({
+      label: district.properties.name,
+      patch: { municipality: null },
+    });
+  }
+  if (municipality) {
+    crumbs.push({ label: municipality.properties.name, patch: null });
+  }
 
   return (
     <div className="relative w-full h-full flex items-center justify-center min-h-[300px]">
-      {selectedProvince && (
+      {/* Breadcrumb — the way back up, and a readout of where you are. */}
+      {crumbs.length > 1 && (
+        <div className="absolute top-3 left-3 z-50 flex items-center flex-wrap gap-0.5 max-w-[65%]">
+          {crumbs.map((crumb, index) => {
+            const isLast = index === crumbs.length - 1;
+            return (
+              <React.Fragment key={crumb.label}>
+                {index > 0 && (
+                  <ChevronRight
+                    size={11}
+                    className="text-muted-foreground/50 shrink-0"
+                  />
+                )}
+                <button
+                  type="button"
+                  disabled={isLast}
+                  onClick={() => crumb.patch && onSelect(crumb.patch)}
+                  className={`text-[10px] font-black uppercase tracking-tight px-1.5 py-0.5 rounded transition-colors ${
+                    isLast
+                      ? "text-primary cursor-default"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                  }`}
+                >
+                  {crumb.label}
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
+
+      {focus && (
         <Button
           variant="outline"
           size="sm"
           onClick={onReset}
-          className="absolute top-4 right-4 z-50 bg-white/80 backdrop-blur-sm border-primary/20 hover:bg-white text-[10px] font-black uppercase tracking-tight h-8 px-2 gap-2 shadow-sm"
+          className="absolute top-3 right-3 z-50 bg-white/80 backdrop-blur-sm border-primary/20 hover:bg-white text-[10px] font-black uppercase tracking-tight h-8 px-2 gap-2 shadow-sm"
         >
           <RotateCcw size={12} className="text-primary" />
           Reset Map
@@ -248,99 +235,236 @@ export default function NepalMap({
       )}
 
       <ParentSize>
-        {({ width, height }) => (
-          <div
-            className="w-full h-full"
-            onMouseLeave={() => handleHoverProvince(null, null)}
-          >
-            <svg width={width} height={height}>
-              <MapPaths
-                features={worldData}
-                width={width}
-                height={height}
-                selectedProvince={selectedProvince}
-                onHoverProvince={handleHoverProvince}
-              />
-            </svg>
-          </div>
-        )}
-      </ParentSize>
+        {({ width, height }) => {
+          if (width < 2 || height < 2) return null;
 
-      {/* Tooltip Popup */}
-      {tooltip && (
-        <div
-          className="absolute z-50 pointer-events-none transition-all duration-75 ease-out"
-          style={{
-            left: tooltip.x + 15,
-            top: tooltip.y + 15,
-            width: "280px",
-          }}
-        >
-          <div className="flex flex-col gap-2 drop-shadow-2xl">
-            {/* Top Cards Row */}
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
-                <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
-                  Province
-                </div>
-                <div className="p-1.5 text-center">
-                  <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
-                    {tooltip.province}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
-                <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
-                  Status
-                </div>
-                <div className="p-1.5 text-center">
-                  <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
-                    Active
-                  </span>
-                </div>
-              </div>
-            </div>
+          /**
+           * The projection is fitted to the whole country once and then never
+           * changes. Zoom is a transform on top of it, so a district keeps the
+           * exact shape and position it had in the national view instead of
+           * being re-projected into a subtly different outline each time the
+           * selection changes.
+           */
+          const pad = Math.min(width, height) * 0.04;
+          const projection = geoAlbers()
+            .rotate([-84.124, 0])
+            .center([0, 28.3949])
+            .parallels([26, 30])
+            .fitExtent(
+              [
+                [pad, pad],
+                [width - pad, height - pad],
+              ],
+              NEPAL,
+            );
+          const path = geoPath(projection);
 
-            {/* Indicator Table Card */}
-            <div className="bg-white border border-border/40 shadow-xl flex flex-col overflow-hidden rounded-lg">
-              <div className="bg-[#002e7a] p-1 px-2 flex flex-row items-center justify-between border-b border-white/10">
-                <div className="flex items-center gap-1">
-                  <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-white" />
-                  <span className="text-[8px] font-black text-white uppercase italic tracking-wider">
-                    Indicator Name
-                  </span>
-                </div>
-                <span className="text-[8px] font-black text-white uppercase italic tracking-wider">
-                  Ranking
-                </span>
-              </div>
-              <div className="flex flex-col max-h-[160px] overflow-hidden">
-                {dummyIndicators.map((indicator, index) => (
-                  <div
-                    key={index}
-                    className={`grid grid-cols-[1fr_auto] items-center min-h-[24px] border-b border-border/20 last:border-0 ${
-                      index % 2 === 0 ? "bg-white" : "bg-muted/30"
-                    }`}
-                  >
-                    <div className="px-2 py-1 text-[9px] font-bold text-foreground/80 leading-tight">
-                      {indicator.name}
-                    </div>
-                    <div className="flex justify-end p-0.5 pr-1">
-                      <div
-                        className={`px-1.5 py-0.5 rounded-sm text-[8px] font-black min-w-[60px] text-center ${getRankingColor(
-                          indicator.ranking,
-                        )}`}
+          const [[x0, y0], [x1, y1]] = path.bounds(focus ?? NEPAL);
+          const boxWidth = Math.max(x1 - x0, 1e-6);
+          const boxHeight = Math.max(y1 - y0, 1e-6);
+          // 1.25 leaves a margin so the focused unit does not touch the edges;
+          // clamping at 1 stops a wide selection from zooming back out.
+          const scale = Math.max(
+            1,
+            Math.min(width / (boxWidth * 1.25), height / (boxHeight * 1.25), 40),
+          );
+          const translateX = width / 2 - (scale * (x0 + x1)) / 2;
+          const translateY = height / 2 - (scale * (y0 + y1)) / 2;
+
+          return (
+            <div
+              className="w-full h-full"
+              onMouseLeave={() => handleHover(null)}
+            >
+              <svg width={width} height={height}>
+                <g
+                  className="nepal-map-group"
+                  style={{
+                    transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                    transformBox: "view-box",
+                    transformOrigin: "0 0",
+                    transition:
+                      "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)",
+                  }}
+                >
+                  <style>{`
+                    .nepal-map-group .nepal-unit {
+                      transition: opacity 0.3s ease, fill 0.3s ease;
+                    }
+                    .nepal-map-group .nepal-unit.is-clickable:hover {
+                      filter: brightness(1.06) drop-shadow(0px 1px 2px rgba(0,0,0,0.3));
+                    }
+                  `}</style>
+
+                  {view.features.map((feature, index) => {
+                    const { code, name, kind } = feature.properties;
+                    const clickable = kind !== "special";
+
+                    return (
+                      <path
+                        key={code}
+                        d={path(feature) || ""}
+                        fill={view.color(feature, index, view.features.length)}
+                        stroke="#ffffff"
+                        strokeWidth={0.6}
+                        // Without this, borders thicken with the zoom and a
+                        // local level ends up outlined more heavily than the
+                        // country was.
+                        vectorEffect="non-scaling-stroke"
+                        className={`nepal-unit outline-none ${
+                          clickable ? "is-clickable cursor-pointer" : ""
+                        }`}
+                        style={{ opacity: 0.9 }}
+                        onMouseEnter={(event) => {
+                          const point = localPoint(event);
+                          if (point)
+                            handleHover({
+                              x: point.x,
+                              y: point.y,
+                              feature,
+                              level: view.level,
+                            });
+                        }}
+                        onMouseMove={(event) => {
+                          const point = localPoint(event);
+                          if (point)
+                            handleHover({
+                              x: point.x,
+                              y: point.y,
+                              feature,
+                              level: view.level,
+                            });
+                        }}
+                        onMouseLeave={() => handleHover(null)}
+                        onClick={() =>
+                          clickable && handleClick(view.level, feature)
+                        }
                       >
-                        {indicator.ranking}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        <title>{name}</title>
+                      </path>
+                    );
+                  })}
+                </g>
+              </svg>
+
+              {hover && (
+                <MapTooltip
+                  hover={hover}
+                  containerWidth={width}
+                  parentName={
+                    hover.level === "municipality"
+                      ? district?.properties.name
+                      : hover.level === "district"
+                        ? province?.properties.name
+                        : undefined
+                  }
+                />
+              )}
+            </div>
+          );
+        }}
+      </ParentSize>
+    </div>
+  );
+}
+
+function MapTooltip({
+  hover,
+  containerWidth,
+  parentName,
+}: {
+  hover: HoverState;
+  containerWidth: number;
+  parentName?: string;
+}) {
+  const { feature, level } = hover;
+  const width = 280;
+  // Flip to the left of the cursor near the right edge, or the card is clipped.
+  const flip = hover.x + width + 30 > containerWidth;
+
+  return (
+    <div
+      className="absolute z-50 pointer-events-none transition-all duration-75 ease-out"
+      style={{
+        left: flip ? undefined : hover.x + 15,
+        right: flip ? containerWidth - hover.x + 15 : undefined,
+        top: hover.y + 15,
+        width,
+      }}
+    >
+      <div className="flex flex-col gap-2 drop-shadow-2xl">
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
+            <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
+              {LEVEL_LABEL[level]}
+            </div>
+            <div className="p-1.5 text-center">
+              <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
+                {feature.properties.name}
+              </span>
+            </div>
+          </div>
+          <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
+            <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
+              {level === "province" ? "Status" : "Within"}
+            </div>
+            <div className="p-1.5 text-center">
+              <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
+                {level === "province" ? "Active" : (parentName ?? "—")}
+              </span>
             </div>
           </div>
         </div>
-      )}
+
+        {level === "province" ? (
+          <div className="bg-white border border-border/40 shadow-xl flex flex-col overflow-hidden rounded-lg">
+            <div className="bg-[#002e7a] p-1 px-2 flex flex-row items-center justify-between border-b border-white/10">
+              <div className="flex items-center gap-1">
+                <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-white" />
+                <span className="text-[8px] font-black text-white uppercase italic tracking-wider">
+                  Indicator Name
+                </span>
+              </div>
+              <span className="text-[8px] font-black text-white uppercase italic tracking-wider">
+                Ranking
+              </span>
+            </div>
+            <div className="flex flex-col max-h-[160px] overflow-hidden">
+              {dummyIndicators.map((indicator, index) => (
+                <div
+                  key={index}
+                  className={`grid grid-cols-[1fr_auto] items-center min-h-[24px] border-b border-border/20 last:border-0 ${
+                    index % 2 === 0 ? "bg-white" : "bg-muted/30"
+                  }`}
+                >
+                  <div className="px-2 py-1 text-[9px] font-bold text-foreground/80 leading-tight">
+                    {indicator.name}
+                  </div>
+                  <div className="flex justify-end p-0.5 pr-1">
+                    <div
+                      className={`px-1.5 py-0.5 rounded-sm text-[8px] font-black min-w-[60px] text-center ${getRankingColor(
+                        indicator.ranking,
+                      )}`}
+                    >
+                      {indicator.ranking}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* No indicator is published below province level, so the card says so
+             rather than repeating the province's figures under a smaller name. */
+          <div className="bg-white border border-border/40 shadow-xl rounded-lg px-3 py-2">
+            <p className="text-[9px] font-bold text-foreground/60 leading-snug">
+              {feature.properties.kind === "special"
+                ? "Protected area — not a local government."
+                : `No indicator data is published at ${LEVEL_LABEL[level].toLowerCase()} level yet.`}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

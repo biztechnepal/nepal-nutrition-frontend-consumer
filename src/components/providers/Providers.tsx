@@ -8,7 +8,17 @@ import { AccessibilityProvider } from "@/features/accessibility/accessibility-co
 import KeyboardNav from "@/features/accessibility/KeyboardNav";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5, // 5 mins
+            retry: false,
+          },
+        },
+      })
+  );
 
   return (
     <QueryClientProvider client={queryClient}>

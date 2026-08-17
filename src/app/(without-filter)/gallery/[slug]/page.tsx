@@ -3,16 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 
-import { QueryKeys } from "@/constants/query-keys";
-import { getAlbumDetails, getAlbumPhotos } from "@/services/library.service";
+import { useAlbum, useAlbumPhotosInfinite } from "@/hooks/use-library";
 import { resolveMediaUrl } from "@/lib/media";
 import { useLocale } from "@/features/i18n/hooks/useLocale";
 import { Button } from "@/components/ui/button";
-import { Photo } from "@/interfaces/model/library.interface";
+import { Photo } from "@/types/library.types";
 
 export default function AlbumPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -20,13 +18,7 @@ export default function AlbumPage() {
   const { t } = useTranslation("gallery");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const { data: albumData, isLoading: albumLoading } = useQuery({
-    queryKey: [QueryKeys.ALBUMDETAIL, slug, locale],
-    queryFn: () => getAlbumDetails(slug, locale),
-    enabled: !!slug,
-  });
-
-  const album = albumData?.data;
+  const { data: album, isLoading: albumLoading } = useAlbum(slug, locale);
 
   const {
     data: photosData,
@@ -34,16 +26,7 @@ export default function AlbumPage() {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: [QueryKeys.ALBUMPHOTOS, album?.id, locale],
-    queryFn: ({ pageParam }) => getAlbumPhotos(album!.id, pageParam, locale),
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.page < lastPage.meta.totalPages
-        ? lastPage.meta.page + 1
-        : undefined,
-    initialPageParam: 1,
-    enabled: !!album?.id,
-  });
+  } = useAlbumPhotosInfinite(album?.id, locale);
 
   const photos = photosData?.pages.flatMap((page) => page.data) ?? [];
 

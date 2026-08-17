@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { SupportedLocale } from "@/interfaces/model/i18n.interface";
+import { SupportedLocale } from "@/types/i18n.types";
 
 export function useLocale() {
   const { i18n } = useTranslation();

@@ -4,13 +4,16 @@ import { IndicatorCard } from "./components/IndicatorCard";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Info } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import NepalMap from "@/components/d3/NepalMap";
-import { ProvinceTable } from "./components/ProvinceTable";
+import { resolveSelection } from "@/lib/geo/admin";
+import {
+  applySelectionPatch,
+  type SelectionPatch,
+} from "@/lib/geo/selection-params";
+import { AreaTable } from "./components/AreaTable";
 import { OfficialCard } from "./components/OfficialCard";
 import { PORTAL_OFFICIALS } from "./officials";
-import { QueryKeys } from "@/constants/query-keys";
-import { getImpactIndicators } from "@/services/dashboard.service";
+import { useImpactIndicators } from "@/hooks/use-dashboard";
 import { useLocale } from "@/features/i18n/hooks/useLocale";
 import {
   IMPACT_INDICATOR_ICONS,
@@ -24,36 +27,34 @@ export const DashboardView = () => {
   const pathname = usePathname();
   const { locale } = useLocale();
 
-  const selectedProvince = searchParams.get("province");
+  // The three levels live in the URL so a drilled-in view stays shareable, and
+  // so `?province=` keeps working for the nutrition-indicator pages that
+  // already read it. Anything that does not resolve — a district that is not in
+  // the selected province, a stale link — is dropped by resolveSelection.
+  const selection = resolveSelection({
+    province: searchParams.get("province"),
+    district: searchParams.get("district"),
+    municipality: searchParams.get("municipality"),
+  });
+  const selectedProvince = selection.province?.properties.name ?? null;
 
   const {
     data: impactData,
     isPending: isLoadingIndicators,
     isError: hasIndicatorError,
-  } = useQuery({
-    queryKey: [QueryKeys.IMPACTINDICATORS, locale],
-    queryFn: () => getImpactIndicators(locale),
-  });
+  } = useImpactIndicators(locale);
 
-  const indicators = impactData?.data?.indicators ?? [];
-  const endFiscalYear = impactData?.data?.endFiscalYear;
-  const fiscalYear = impactData?.data?.fiscalYear;
+  const indicators = impactData?.indicators ?? [];
+  const endFiscalYear = impactData?.endFiscalYear;
+  const fiscalYear = impactData?.fiscalYear;
 
-  const handleProvinceClick = (province: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (province) {
-      params.set("province", province);
-    } else {
-      params.delete("province");
-    }
+  const applySelection = (patch: SelectionPatch) => {
+    const params = applySelectionPatch(searchParams, patch);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const handleReset = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("province");
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
+  const handleReset = () =>
+    applySelection({ province: null, district: null, municipality: null });
 
   return (
     <div className="w-full bg-[#FAFAFA] min-h-screen">
@@ -120,7 +121,8 @@ export const DashboardView = () => {
             <Card className="h-full bg-white border border-border/20 rounded-2xl p-2 flex items-center justify-center relative shadow-inner">
               <div className="w-full h-full relative z-10 flex items-center justify-center min-h-[300px]">
                 <NepalMap
-                  selectedProvince={selectedProvince}
+                  selection={selection}
+                  onSelect={applySelection}
                   onReset={handleReset}
                 />
               </div>
@@ -130,10 +132,7 @@ export const DashboardView = () => {
           {/* Right Side Selectors Explorer */}
           <div className="col-span-12 lg:col-span-3 h-fit lg:max-h-[560px]">
             <div className="h-fit min-h-0 text-left">
-              <ProvinceTable
-                selectedProvince={selectedProvince}
-                onProvinceClick={handleProvinceClick}
-              />
+              <AreaTable selection={selection} onSelect={applySelection} />
             </div>
           </div>
         </div>

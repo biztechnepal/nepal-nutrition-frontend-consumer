@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Menu, ChevronDown, CalendarDays, MapPin, Check } from "lucide-react";
+import { Menu, ChevronDown, CalendarDays, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -16,12 +17,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { PROVINCE_COLORS } from "@/constants/provinces";
+import { PROVINCE_NAMES } from "@/constants/provinces";
 import { useTranslation } from "react-i18next";
 import { LocaleSwitcher } from "@/features/i18n/components/LocaleSwitcher";
+import { AreaFilter } from "./AreaFilter";
+import {
+  applySelectionPatch,
+  type SelectionPatch,
+} from "@/lib/geo/selection-params";
+
+// Pulls in the boundary data, so it is fetched only once a province is picked.
+const SubProvinceFilters = dynamic(() => import("./SubProvinceFilters"), {
+  ssr: false,
+});
 
 const YEARS = ["2026", "2025", "2024", "2023", "2022"];
-const PROVINCES = Object.keys(PROVINCE_COLORS);
 
 const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
   const pathname = usePathname();
@@ -30,7 +40,15 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
   const { t } = useTranslation("header");
 
   const currentYear = searchParams.get("year") || "2026";
-  const currentProvince = searchParams.get("province") || null;
+
+  // Validated against the static name list rather than the boundary data, so
+  // the header stays independent of the map's payload. The deeper levels are
+  // resolved inside SubProvinceFilters, which owns that data.
+  const provinceParam = searchParams.get("province");
+  const currentProvince =
+    provinceParam && PROVINCE_NAMES.includes(provinceParam)
+      ? provinceParam
+      : null;
 
   const updateQueryParams = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -39,6 +57,11 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
     } else {
       params.delete(key);
     }
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const applySelection = (patch: SelectionPatch) => {
+    const params = applySelectionPatch(searchParams, patch);
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -113,69 +136,21 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
             </DropdownMenu>
           )}
 
-          {/* Province Filter */}
+          {/* Area filters. District appears once a province is chosen, and
+              local level once a district is — an unscoped list of 753 units
+              would be unusable, and the map reads the same three params. */}
           {showFilter && (
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 bg-white shrink-0 border-border/60 hover:bg-muted/50 transition-colors"
-                >
-                  <MapPin
-                    size={14}
-                    className={
-                      currentProvince ? "text-primary" : "text-muted-foreground"
-                    }
-                  />
-                  <span className="font-bold text-secondary">
-                    {currentProvince ? currentProvince : t("province")}
-                  </span>
-                  <ChevronDown size={14} className="text-muted-foreground ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-56 max-h-[300px] overflow-y-auto"
-              >
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                  {t("selectProvince")}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => updateQueryParams("province", null)}
-                  className="flex items-center justify-between"
-                >
-                  <span
-                    className={!currentProvince ? "font-bold text-primary" : ""}
-                  >
-                    {t("allProvinces")}
-                  </span>
-                  {!currentProvince && (
-                    <Check size={14} className="text-primary" />
-                  )}
-                </DropdownMenuItem>
-                {PROVINCES.map((prov) => (
-                  <DropdownMenuItem
-                    key={prov}
-                    onClick={() => updateQueryParams("province", prov)}
-                    className="flex items-center justify-between"
-                  >
-                    <span
-                      className={
-                        currentProvince === prov ? "font-bold text-primary" : ""
-                      }
-                    >
-                      {prov}
-                    </span>
-                    {currentProvince === prov && (
-                      <Check size={14} className="text-primary" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AreaFilter
+              label={t("province")}
+              menuLabel={t("selectProvince")}
+              clearLabel={t("allProvinces")}
+              current={currentProvince}
+              options={PROVINCE_NAMES}
+              onPick={(value) => applySelection({ province: value })}
+            />
           )}
+
+          {showFilter && currentProvince && <SubProvinceFilters />}
 
           <LocaleSwitcher />
 

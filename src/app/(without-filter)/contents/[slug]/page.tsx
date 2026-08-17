@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { QueryKeys } from "@/constants/query-keys";
-import { getContentDetails, getChildContentDetails } from "@/services/content.service";
+import { useChildContent, useContent } from "@/hooks/use-content";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocale } from "@/features/i18n/hooks/useLocale";
 
@@ -14,23 +12,18 @@ export default function ContentDetailPage() {
   const { locale } = useLocale();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
-  const { data: parentData, isLoading: parentLoading } = useQuery({
-    queryKey: [QueryKeys.CONTENTDETAIL, slug, locale],
-    queryFn: () => getContentDetails(slug, locale),
-    enabled: !!slug,
-  });
+  const { data: parent, isLoading: parentLoading } = useContent(slug, locale);
 
   const defaultChildId =
-    parentData?.data && !parentData.data.htmlContent && parentData.data.children.length > 0
-      ? parentData.data.children[0].id
+    parent && !parent.htmlContent && parent.children.length > 0
+      ? parent.children[0].id
       : null;
   const activeChildId = selectedChildId ?? defaultChildId;
 
-  const { data: childDetailData, isLoading: childDetailLoading } = useQuery({
-    queryKey: [QueryKeys.CHILDCONTENTDETAIL, activeChildId, locale],
-    queryFn: () => getChildContentDetails(activeChildId!, locale),
-    enabled: !!activeChildId,
-  });
+  const { data: childDetail, isLoading: childDetailLoading } = useChildContent(
+    activeChildId,
+    locale
+  );
 
   if (parentLoading) {
     return (
@@ -40,7 +33,7 @@ export default function ContentDetailPage() {
     );
   }
 
-  if (!parentData) {
+  if (!parent) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <p className="text-muted-foreground">Content not found.</p>
@@ -48,9 +41,8 @@ export default function ContentDetailPage() {
     );
   }
 
-  const parent = parentData.data;
   const isShowingParent = selectedChildId === null && !!parent.htmlContent;
-  const rightContent = isShowingParent ? parent : childDetailData?.data;
+  const rightContent = isShowingParent ? parent : childDetail;
   const isRightLoading = !isShowingParent && childDetailLoading;
 
   return (

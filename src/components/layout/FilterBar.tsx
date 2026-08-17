@@ -3,11 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { QueryKeys } from "@/constants/query-keys";
-import { getContent } from "@/services/content.service";
+import { useContentList } from "@/hooks/use-content";
 import { useLocale } from "@/features/i18n/hooks/useLocale";
 import {
   NavigationMenu,
@@ -22,12 +20,7 @@ export const NavigationBar = () => {
   const { t } = useTranslation("header");
   const { locale } = useLocale();
 
-  const { data: contentData } = useQuery({
-    queryKey: [QueryKeys.CONTENT, locale],
-    queryFn: () => getContent(locale),
-  });
-
-  const contentItems = contentData?.data ?? [];
+  const { data: contentItems = [] } = useContentList(locale);
 
   const navLinks = [
     { name: t("home"), href: "/" },

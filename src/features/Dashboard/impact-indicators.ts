@@ -7,7 +7,7 @@ import {
   User2,
   type LucideIcon,
 } from "lucide-react";
-import { ImpactIndicator } from "@/interfaces/model/indicator.interface";
+import { ImpactIndicator } from "@/types/indicator.types";
 
 export type IndicatorStatus = "success" | "warning" | "error" | "neutral";
 

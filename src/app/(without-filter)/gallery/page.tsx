@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ImageIcon } from "lucide-react";
 
-import { QueryKeys } from "@/constants/query-keys";
-import { getAlbums } from "@/services/library.service";
+import { useAlbumListInfinite } from "@/hooks/use-library";
 import { resolveMediaUrl } from "@/lib/media";
 import { useLocale } from "@/features/i18n/hooks/useLocale";
 import { Button } from "@/components/ui/button";
@@ -22,15 +20,7 @@ export default function GalleryPage() {
   const { t } = useTranslation("gallery");
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      queryKey: [QueryKeys.ALBUMS, locale],
-      queryFn: ({ pageParam }) => getAlbums(pageParam, locale),
-      getNextPageParam: (lastPage) =>
-        lastPage.meta.page < lastPage.meta.totalPages
-          ? lastPage.meta.page + 1
-          : undefined,
-      initialPageParam: 1,
-    });
+    useAlbumListInfinite(locale);
 
   const albums = data?.pages.flatMap((page) => page.data) ?? [];
 
