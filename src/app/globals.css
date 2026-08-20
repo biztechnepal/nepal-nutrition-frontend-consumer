@@ -60,6 +60,13 @@
   --color-access-12: #c0ca33;
   --color-access-13: #f4511e;
   --color-access-14: #8d6e63;
+
+  /* Footer */
+  --color-footer: #003a66;
+  --color-footer-foreground: #ffffff;
+  --color-footer-muted: oklch(0.780 0.030 253.12);
+  --color-footer-border: oklch(0.850 0.040 253.12 / 0.25);
+  --color-footer-accent: oklch(0.536 0.232 15.65);
 }
 
 :root {
