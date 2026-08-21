@@ -3,18 +3,15 @@
 import React, { useCallback, useMemo } from "react";
 import { geoAlbers, geoPath } from "d3-geo";
 import { ParentSize } from "@visx/responsive";
-import { localPoint } from "@visx/event";
 import { ChevronRight, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   type AdminFeature,
   type AdminLevel,
   type AdminSelection,
-  NEPAL,
-  PROVINCES,
-  districtsOf,
-  municipalitiesOf,
+  EMPTY_SELECTION,
 } from "@/lib/geo/admin";
+import { useNepalAdmin } from "@/lib/geo/nepal-admin-provider";
 import { provinceColor, shadeFor } from "@/constants/provinces";
 import type { SelectionPatch } from "@/lib/geo/selection-params";
 
@@ -24,47 +21,16 @@ interface NepalMapProps {
   selection: AdminSelection;
   onSelect: (patch: SelectionPatch) => void;
   onReset: () => void;
-  onHover?: (name: string | null) => void;
 }
 
-interface Indicator {
-  name: string;
-  ranking: "Off Track" | "In Progress" | "On Track" | "No Ranking";
-}
-
-const dummyIndicators: Indicator[] = [
-  { name: "Children stunted", ranking: "Off Track" },
-  { name: "Exclusive Breast Feeding", ranking: "In Progress" },
-  { name: "Exclusive Breast Feeding", ranking: "Off Track" },
-  { name: "Minimum dietary diversity (6-23 months)", ranking: "In Progress" },
-  { name: "Severe Acute Malnutrition", ranking: "No Ranking" },
-];
-
-const getRankingColor = (ranking: string) => {
-  switch (ranking) {
-    case "Off Track":
-      return "bg-[#8b2b2b] text-white";
-    case "In Progress":
-      return "bg-[#c19412] text-white";
-    case "On Track":
-      return "bg-[#2b8b2b] text-white";
-    default:
-      return "bg-transparent text-foreground/60";
-  }
+/** On-screen label size per level; the counter-scale keeps these constant. */
+const LABEL_FONT_SIZE: Record<AdminLevel, number> = {
+  province: 11,
+  district: 9,
+  municipality: 8,
 };
 
-const LEVEL_LABEL: Record<AdminLevel, string> = {
-  province: "Province",
-  district: "District",
-  municipality: "Local Level",
-};
-
-interface HoverState {
-  x: number;
-  y: number;
-  feature: AdminFeature;
-  level: AdminLevel;
-}
+const ZOOM_TRANSITION = "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)";
 
 /** What the map is currently drawing: one level, one flat set of features. */
 interface View {
@@ -77,30 +43,11 @@ export default function NepalMap({
   selection,
   onSelect,
   onReset,
-  onHover,
 }: NepalMapProps) {
-  const [hover, setHover] = React.useState<HoverState | null>(null);
+  const admin = useNepalAdmin();
 
-  const { province, district, municipality, focus } = selection;
-
-  const handleHover = useCallback(
-    (next: HoverState | null) => {
-      setHover((prev) => {
-        if (!next) return null;
-        if (
-          prev &&
-          prev.x === next.x &&
-          prev.y === next.y &&
-          prev.feature === next.feature
-        ) {
-          return prev;
-        }
-        return next;
-      });
-      onHover?.(next?.feature.properties.name ?? null);
-    },
-    [onHover],
-  );
+  const { province, district, municipality, focus } =
+    admin ? selection : EMPTY_SELECTION;
 
   /**
    * One level at a time. Selecting a unit replaces the map with that unit's
@@ -108,7 +55,9 @@ export default function NepalMap({
    * than drawing them over the wider country. Nothing outside the selection is
    * rendered, so the card shows the chosen area and only the chosen area.
    */
-  const view = useMemo<View>(() => {
+  const view = useMemo<View | null>(() => {
+    if (!admin) return null;
+
     const provinceHex = provinceColor(province?.properties.name);
     const shaded = (_f: AdminFeature, index: number, total: number) =>
       shadeFor(provinceHex, index, total);
@@ -124,30 +73,25 @@ export default function NepalMap({
     if (district) {
       return {
         level: "municipality",
-        // Parks and reserves are included so the district is drawn whole; they
-        // are painted flat and are not selectable.
-        features: municipalitiesOf(district.properties.code),
-        color: (feature, index, total) =>
-          feature.properties.kind === "special"
-            ? "#d9d9d9"
-            : shaded(feature, index, total),
+        features: admin.municipalitiesOf(district.properties.code),
+        color: shaded,
       };
     }
 
     if (province) {
       return {
         level: "district",
-        features: districtsOf(province.properties.code),
+        features: admin.districtsOf(province.properties.code),
         color: shaded,
       };
     }
 
     return {
       level: "province",
-      features: PROVINCES,
+      features: admin.PROVINCES,
       color: (feature) => provinceColor(feature.properties.name),
     };
-  }, [province, district, municipality]);
+  }, [admin, province, district, municipality]);
 
   const handleClick = useCallback(
     (level: AdminLevel, feature: AdminFeature) => {
@@ -161,7 +105,7 @@ export default function NepalMap({
         onSelect({ province: name });
       } else if (level === "district") {
         onSelect({ district: name });
-      } else if (feature.properties.kind !== "special") {
+      } else {
         const isSelected =
           municipality?.properties.code === feature.properties.code;
         onSelect({ municipality: isSelected ? null : name });
@@ -234,237 +178,168 @@ export default function NepalMap({
         </Button>
       )}
 
-      <ParentSize>
-        {({ width, height }) => {
-          if (width < 2 || height < 2) return null;
+      {!admin || !view ? (
+        <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
+          <div className="size-8 rounded-full border-2 border-border border-t-primary animate-spin" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Loading map…
+          </span>
+        </div>
+      ) : (
+        <ParentSize>
+          {({ width, height }) => {
+            if (width < 2 || height < 2) return null;
 
-          /**
-           * The projection is fitted to the whole country once and then never
-           * changes. Zoom is a transform on top of it, so a district keeps the
-           * exact shape and position it had in the national view instead of
-           * being re-projected into a subtly different outline each time the
-           * selection changes.
-           */
-          const pad = Math.min(width, height) * 0.04;
-          const projection = geoAlbers()
-            .rotate([-84.124, 0])
-            .center([0, 28.3949])
-            .parallels([26, 30])
-            .fitExtent(
-              [
-                [pad, pad],
-                [width - pad, height - pad],
-              ],
-              NEPAL,
+            /**
+             * The projection is fitted to the whole country once and then never
+             * changes. Zoom is a transform on top of it, so a district keeps the
+             * exact shape and position it had in the national view instead of
+             * being re-projected into a subtly different outline each time the
+             * selection changes.
+             */
+            const pad = Math.min(width, height) * 0.04;
+            const projection = geoAlbers()
+              .rotate([-84.124, 0])
+              .center([0, 28.3949])
+              .parallels([26, 30])
+              .fitExtent(
+                [
+                  [pad, pad],
+                  [width - pad, height - pad],
+                ],
+                admin.NEPAL,
+              );
+            const path = geoPath(projection);
+
+            const [[x0, y0], [x1, y1]] = path.bounds(focus ?? admin.NEPAL);
+            const boxWidth = Math.max(x1 - x0, 1e-6);
+            const boxHeight = Math.max(y1 - y0, 1e-6);
+            // 1.25 leaves a margin so the focused unit does not touch the edges;
+            // clamping at 1 stops a wide selection from zooming back out.
+            const scale = Math.max(
+              1,
+              Math.min(
+                width / (boxWidth * 1.25),
+                height / (boxHeight * 1.25),
+                40,
+              ),
             );
-          const path = geoPath(projection);
+            const translateX = width / 2 - (scale * (x0 + x1)) / 2;
+            const translateY = height / 2 - (scale * (y0 + y1)) / 2;
 
-          const [[x0, y0], [x1, y1]] = path.bounds(focus ?? NEPAL);
-          const boxWidth = Math.max(x1 - x0, 1e-6);
-          const boxHeight = Math.max(y1 - y0, 1e-6);
-          // 1.25 leaves a margin so the focused unit does not touch the edges;
-          // clamping at 1 stops a wide selection from zooming back out.
-          const scale = Math.max(
-            1,
-            Math.min(width / (boxWidth * 1.25), height / (boxHeight * 1.25), 40),
-          );
-          const translateX = width / 2 - (scale * (x0 + x1)) / 2;
-          const translateY = height / 2 - (scale * (y0 + y1)) / 2;
+            return (
+              <div className="w-full h-full">
+                <svg width={width} height={height}>
+                  <g
+                    className="nepal-map-group"
+                    style={{
+                      transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                      transformBox: "view-box",
+                      transformOrigin: "0 0",
+                      transition: ZOOM_TRANSITION,
+                    }}
+                  >
+                    <style>{`
+                      .nepal-map-group .nepal-unit {
+                        transition: opacity 0.3s ease, fill 0.3s ease;
+                      }
+                      .nepal-map-group .nepal-unit.is-clickable:hover {
+                        filter: brightness(1.06) drop-shadow(0px 1px 2px rgba(0,0,0,0.3));
+                      }
+                      .nepal-map-group .nepal-label {
+                        transition: ${ZOOM_TRANSITION};
+                      }
+                    `}</style>
 
-          return (
-            <div
-              className="w-full h-full"
-              onMouseLeave={() => handleHover(null)}
-            >
-              <svg width={width} height={height}>
-                <g
-                  className="nepal-map-group"
-                  style={{
-                    transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-                    transformBox: "view-box",
-                    transformOrigin: "0 0",
-                    transition:
-                      "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                >
-                  <style>{`
-                    .nepal-map-group .nepal-unit {
-                      transition: opacity 0.3s ease, fill 0.3s ease;
-                    }
-                    .nepal-map-group .nepal-unit.is-clickable:hover {
-                      filter: brightness(1.06) drop-shadow(0px 1px 2px rgba(0,0,0,0.3));
-                    }
-                  `}</style>
-
-                  {view.features.map((feature, index) => {
-                    const { code, name, kind } = feature.properties;
-                    const clickable = kind !== "special";
-
-                    return (
+                    {/* The upstream local-level layer has no park or reserve
+                        features, so a district drawn purely from its palikas
+                        would show holes where they sit — and a notch in the far
+                        north-west where Darchula's Kalapani salient belongs to
+                        no local level. The district outline underneath plugs
+                        both. */}
+                    {view.level === "municipality" && district && !municipality && (
                       <path
-                        key={code}
-                        d={path(feature) || ""}
-                        fill={view.color(feature, index, view.features.length)}
+                        d={path(district) || ""}
+                        fill="#e5e5e5"
                         stroke="#ffffff"
                         strokeWidth={0.6}
-                        // Without this, borders thicken with the zoom and a
-                        // local level ends up outlined more heavily than the
-                        // country was.
                         vectorEffect="non-scaling-stroke"
-                        className={`nepal-unit outline-none ${
-                          clickable ? "is-clickable cursor-pointer" : ""
-                        }`}
-                        style={{ opacity: 0.9 }}
-                        onMouseEnter={(event) => {
-                          const point = localPoint(event);
-                          if (point)
-                            handleHover({
-                              x: point.x,
-                              y: point.y,
-                              feature,
-                              level: view.level,
-                            });
-                        }}
-                        onMouseMove={(event) => {
-                          const point = localPoint(event);
-                          if (point)
-                            handleHover({
-                              x: point.x,
-                              y: point.y,
-                              feature,
-                              level: view.level,
-                            });
-                        }}
-                        onMouseLeave={() => handleHover(null)}
-                        onClick={() =>
-                          clickable && handleClick(view.level, feature)
-                        }
-                      >
-                        <title>{name}</title>
-                      </path>
-                    );
-                  })}
-                </g>
-              </svg>
+                        className="nepal-unit"
+                        style={{ pointerEvents: "none" }}
+                      />
+                    )}
 
-              {hover && (
-                <MapTooltip
-                  hover={hover}
-                  containerWidth={width}
-                  parentName={
-                    hover.level === "municipality"
-                      ? district?.properties.name
-                      : hover.level === "district"
-                        ? province?.properties.name
-                        : undefined
-                  }
-                />
-              )}
-            </div>
-          );
-        }}
-      </ParentSize>
-    </div>
-  );
-}
+                    {view.features.map((feature, index) => {
+                      const { code, name } = feature.properties;
 
-function MapTooltip({
-  hover,
-  containerWidth,
-  parentName,
-}: {
-  hover: HoverState;
-  containerWidth: number;
-  parentName?: string;
-}) {
-  const { feature, level } = hover;
-  const width = 280;
-  // Flip to the left of the cursor near the right edge, or the card is clipped.
-  const flip = hover.x + width + 30 > containerWidth;
+                      return (
+                        <path
+                          key={code}
+                          d={path(feature) || ""}
+                          fill={view.color(
+                            feature,
+                            index,
+                            view.features.length,
+                          )}
+                          stroke="#ffffff"
+                          strokeWidth={0.6}
+                          // Without this, borders thicken with the zoom and a
+                          // local level ends up outlined more heavily than the
+                          // country was.
+                          vectorEffect="non-scaling-stroke"
+                          className="nepal-unit is-clickable cursor-pointer outline-none"
+                          style={{ opacity: 0.9 }}
+                          onClick={() => handleClick(view.level, feature)}
+                        >
+                          <title>{name}</title>
+                        </path>
+                      );
+                    })}
 
-  return (
-    <div
-      className="absolute z-50 pointer-events-none transition-all duration-75 ease-out"
-      style={{
-        left: flip ? undefined : hover.x + 15,
-        right: flip ? containerWidth - hover.x + 15 : undefined,
-        top: hover.y + 15,
-        width,
-      }}
-    >
-      <div className="flex flex-col gap-2 drop-shadow-2xl">
-        <div className="grid grid-cols-2 gap-1.5">
-          <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
-            <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
-              {LEVEL_LABEL[level]}
-            </div>
-            <div className="p-1.5 text-center">
-              <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
-                {feature.properties.name}
-              </span>
-            </div>
-          </div>
-          <div className="bg-white rounded-md shadow-lg overflow-hidden border border-border/40">
-            <div className="bg-[#002e7a] text-white text-[8px] font-black py-0.5 px-2 text-center uppercase tracking-widest">
-              {level === "province" ? "Status" : "Within"}
-            </div>
-            <div className="p-1.5 text-center">
-              <span className="text-[10px] font-black text-[#002e7a] uppercase truncate block">
-                {level === "province" ? "Active" : (parentName ?? "—")}
-              </span>
-            </div>
-          </div>
-        </div>
+                    {/* Unit names painted onto their shapes. Each label sits at
+                        the shape's projected centroid and counter-scales by
+                        1/scale, so text stays a constant size while the map
+                        zooms around it; the shared transition keeps the two in
+                        step during the animated drill-down. */}
+                    {view.features.map((feature) => {
+                      const [cx, cy] = path.centroid(feature);
+                      if (!Number.isFinite(cx) || !Number.isFinite(cy)) {
+                        return null;
+                      }
 
-        {level === "province" ? (
-          <div className="bg-white border border-border/40 shadow-xl flex flex-col overflow-hidden rounded-lg">
-            <div className="bg-[#002e7a] p-1 px-2 flex flex-row items-center justify-between border-b border-white/10">
-              <div className="flex items-center gap-1">
-                <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-white" />
-                <span className="text-[8px] font-black text-white uppercase italic tracking-wider">
-                  Indicator Name
-                </span>
+                      return (
+                        <g
+                          key={`label-${feature.properties.code}`}
+                          className="nepal-label"
+                          transform={`translate(${cx}, ${cy}) scale(${
+                            1 / scale
+                          })`}
+                          style={{ pointerEvents: "none" }}
+                        >
+                          <text
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fontSize={LABEL_FONT_SIZE[view.level]}
+                            fontWeight={900}
+                            letterSpacing={0.4}
+                            fill="#1f2937"
+                            stroke="#ffffff"
+                            strokeWidth={3}
+                            strokeLinejoin="round"
+                            paintOrder="stroke"
+                          >
+                            {feature.properties.name.toUpperCase()}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </g>
+                </svg>
               </div>
-              <span className="text-[8px] font-black text-white uppercase italic tracking-wider">
-                Ranking
-              </span>
-            </div>
-            <div className="flex flex-col max-h-[160px] overflow-hidden">
-              {dummyIndicators.map((indicator, index) => (
-                <div
-                  key={index}
-                  className={`grid grid-cols-[1fr_auto] items-center min-h-[24px] border-b border-border/20 last:border-0 ${
-                    index % 2 === 0 ? "bg-white" : "bg-muted/30"
-                  }`}
-                >
-                  <div className="px-2 py-1 text-[9px] font-bold text-foreground/80 leading-tight">
-                    {indicator.name}
-                  </div>
-                  <div className="flex justify-end p-0.5 pr-1">
-                    <div
-                      className={`px-1.5 py-0.5 rounded-sm text-[8px] font-black min-w-[60px] text-center ${getRankingColor(
-                        indicator.ranking,
-                      )}`}
-                    >
-                      {indicator.ranking}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* No indicator is published below province level, so the card says so
-             rather than repeating the province's figures under a smaller name. */
-          <div className="bg-white border border-border/40 shadow-xl rounded-lg px-3 py-2">
-            <p className="text-[9px] font-bold text-foreground/60 leading-snug">
-              {feature.properties.kind === "special"
-                ? "Protected area — not a local government."
-                : `No indicator data is published at ${LEVEL_LABEL[level].toLowerCase()} level yet.`}
-            </p>
-          </div>
-        )}
-      </div>
+            );
+          }}
+        </ParentSize>
+      )}
     </div>
   );
 }

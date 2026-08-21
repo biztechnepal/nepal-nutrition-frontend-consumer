@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Info } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import NepalMap from "@/components/d3/NepalMap";
-import { resolveSelection } from "@/lib/geo/admin";
+import { EMPTY_SELECTION, type AdminSelection } from "@/lib/geo/admin";
+import { useNepalAdmin } from "@/lib/geo/nepal-admin-provider";
 import {
   applySelectionPatch,
   type SelectionPatch,
@@ -25,16 +26,19 @@ export const DashboardView = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { locale } = useLocale();
+  const admin = useNepalAdmin();
 
   // The three levels live in the URL so a drilled-in view stays shareable, and
   // so `?province=` keeps working for the nutrition-indicator pages that
   // already read it. Anything that does not resolve — a district that is not in
   // the selected province, a stale link — is dropped by resolveSelection.
-  const selection = resolveSelection({
-    province: searchParams.get("province"),
-    district: searchParams.get("district"),
-    municipality: searchParams.get("municipality"),
-  });
+  const selection: AdminSelection = admin
+    ? admin.resolveSelection({
+        province: searchParams.get("province"),
+        district: searchParams.get("district"),
+        municipality: searchParams.get("municipality"),
+      })
+    : EMPTY_SELECTION;
   const selectedProvince = selection.province?.properties.name ?? null;
 
   const {

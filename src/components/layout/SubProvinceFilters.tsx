@@ -3,7 +3,7 @@
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AreaFilter } from "./AreaFilter";
-import { districtsOf, palikasOf, resolveSelection } from "@/lib/geo/admin";
+import { useNepalAdmin } from "@/lib/geo/nepal-admin-provider";
 import { applySelectionPatch, type SelectionPatch } from "@/lib/geo/selection-params";
 
 /**
@@ -18,14 +18,17 @@ export default function SubProvinceFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const admin = useNepalAdmin();
 
-  const selection = resolveSelection({
-    province: searchParams.get("province"),
-    district: searchParams.get("district"),
-    municipality: searchParams.get("municipality"),
-  });
+  const selection = admin
+    ? admin.resolveSelection({
+        province: searchParams.get("province"),
+        district: searchParams.get("district"),
+        municipality: searchParams.get("municipality"),
+      })
+    : null;
 
-  if (!selection.province) return null;
+  if (!admin || !selection || !selection.province) return null;
 
   const apply = (patch: SelectionPatch) => {
     const params = applySelectionPatch(searchParams, patch);
@@ -39,9 +42,9 @@ export default function SubProvinceFilters() {
         menuLabel="Select District"
         clearLabel="All Districts"
         current={selection.district?.properties.name ?? null}
-        options={districtsOf(selection.province.properties.code).map(
-          (d) => d.properties.name,
-        )}
+        options={admin
+          .districtsOf(selection.province.properties.code)
+          .map((d) => d.properties.name)}
         onPick={(value) => apply({ district: value })}
       />
 
@@ -51,9 +54,9 @@ export default function SubProvinceFilters() {
           menuLabel="Select Local Level"
           clearLabel="All Local Levels"
           current={selection.municipality?.properties.name ?? null}
-          options={palikasOf(selection.district.properties.code).map(
-            (m) => m.properties.name,
-          )}
+          options={admin
+            .palikasOf(selection.district.properties.code)
+            .map((m) => m.properties.name)}
           onPick={(value) => apply({ municipality: value })}
         />
       )}
