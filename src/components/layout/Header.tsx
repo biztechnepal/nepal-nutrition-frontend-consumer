@@ -20,11 +20,6 @@ import {
 import { PROVINCE_NAMES } from "@/constants/provinces";
 import { useTranslation } from "react-i18next";
 import { LocaleSwitcher } from "@/features/i18n/components/LocaleSwitcher";
-import { AreaFilter } from "./AreaFilter";
-import {
-  applySelectionPatch,
-  type SelectionPatch,
-} from "@/lib/geo/selection-params";
 
 // Pulls in the boundary data, so it is fetched only once a province is picked.
 const SubProvinceFilters = dynamic(() => import("./SubProvinceFilters"), {
@@ -57,11 +52,6 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
     } else {
       params.delete(key);
     }
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const applySelection = (patch: SelectionPatch) => {
-    const params = applySelectionPatch(searchParams, patch);
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -134,20 +124,6 @@ const Header = ({ showFilter = true }: { showFilter?: boolean }) => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-
-          {/* Area filters. District appears once a province is chosen, and
-              local level once a district is — an unscoped list of 753 units
-              would be unusable, and the map reads the same three params. */}
-          {showFilter && (
-            <AreaFilter
-              label={t("province")}
-              menuLabel={t("selectProvince")}
-              clearLabel={t("allProvinces")}
-              current={currentProvince}
-              options={PROVINCE_NAMES}
-              onPick={(value) => applySelection({ province: value })}
-            />
           )}
 
           {showFilter && currentProvince && <SubProvinceFilters />}

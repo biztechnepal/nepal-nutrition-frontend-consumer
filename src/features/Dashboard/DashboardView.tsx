@@ -10,7 +10,6 @@ import {
   applySelectionPatch,
   type SelectionPatch,
 } from "@/lib/geo/selection-params";
-import { AreaTable } from "./components/AreaTable";
 import { OfficialCard } from "./components/OfficialCard";
 import { PORTAL_OFFICIALS } from "./officials";
 import { useImpactIndicators } from "@/hooks/use-dashboard";
@@ -117,7 +116,7 @@ export const DashboardView = () => {
           </div>
 
           {/* Nepal Map Centerpiece */}
-          <div className="col-span-12 lg:col-span-6 h-full lg:max-h-[560px]">
+          <div className="col-span-12 lg:col-span-9 h-full lg:max-h-[560px]">
             <Card className="h-full bg-white border border-border/20 rounded-2xl p-2 flex items-center justify-center relative shadow-inner">
               <div className="w-full h-full relative z-10 flex items-center justify-center min-h-[300px]">
                 <NepalMap
@@ -127,13 +126,6 @@ export const DashboardView = () => {
                 />
               </div>
             </Card>
-          </div>
-
-          {/* Right Side Selectors Explorer */}
-          <div className="col-span-12 lg:col-span-3 h-fit lg:max-h-[560px]">
-            <div className="h-fit min-h-0 text-left">
-              <AreaTable selection={selection} onSelect={applySelection} />
-            </div>
           </div>
         </div>
 
@@ -157,10 +149,10 @@ export const DashboardView = () => {
                   matched by an equally strong support from the external
                   development partners. As a result, a multitude of activities
                   are ongoing in this field in the country. A powerful rationale
-                  therefore exists for an online and open access
-                  “One-Stop-Shop” for all the resources, information and updates
-                  related to nutrition and food security in Nepal. Hence, this
-                  Nepal Nutrition and Food Security Portal has been established.
+                  therefore exists for an online and open access “One-Stop-Shop”
+                  for all the resources, information and updates related to
+                  nutrition and food security in Nepal. Hence, this Nepal
+                  Nutrition and Food Security Portal has been established.
                 </p>
               </CardContent>
             </Card>
@@ -225,10 +217,10 @@ export const DashboardView = () => {
                         key={indicator.configId}
                         title={indicator.name}
                         value={hasFigure ? indicator.current!.label : "—"}
-                        unit={hasFigure ? (indicator.unit ?? "") : ""}
+                        unit={hasFigure ? indicator.unit ?? "" : ""}
                         target={formatTargetLabel(
                           indicator.endTarget,
-                          indicator.unit,
+                          indicator.unit
                         )}
                         targetLabel={
                           endFiscalYear?.dateInAd
@@ -253,9 +245,6 @@ export const DashboardView = () => {
             <div className="w-1.5 h-1.5 rounded-full bg-border" />
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/30 animate-pulse delay-150" />
           </div>
-          <p className="text-[11px] text-muted-foreground font-bold opacity-60">
-            MSNP III Progressive Visualization System &bull; Active Data Feed
-          </p>
         </div>
       </div>
     </div>
